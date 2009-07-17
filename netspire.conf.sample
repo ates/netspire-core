@@ -1,0 +1,41 @@
+%%%
+%%% Netspire sample configuration file
+%%%
+
+%%
+%% Override local options specific for particular node
+%%
+override_local.
+
+%%
+%% Override global options shared by all nodes in a cluster
+%%
+override_global.
+
+%% Logging options
+{logging, {netspire_filelog_h, [
+  {path, "/tmp/netspire.log"},
+  {rotation_interval, 600},
+  {max_size, 10485760}
+]}}.
+
+%% Clustering options
+%% {nodes, [node1@host, node2@host, nodeN@host]}.
+{nodes, []}.
+
+%% Code path to load modules from
+{code_path, []}.
+
+%%
+%% Available services with options
+%%
+{services,
+  [
+  ]}.
+
+%%
+%% List of modules which will be loaded dynamically
+%%
+{modules,
+  [
+  ]}.
