@@ -8,5 +8,5 @@
                ]},
     {registered, []},
     {applications, [kernel, stdlib]},
-    {mod, {netspire_app, []}}
+    {mod, {netspire, []}}
 ]}.
