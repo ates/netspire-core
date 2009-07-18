@@ -70,4 +70,30 @@ override_global.
 %%
 {modules,
   [
+      %% RADIUS PAP auth type
+      {mod_pap, []},
+
+      %% RADIUS MS-CHAP-V2 auth type
+      {mod_mschap_v2, []},
+
+      %% Pool of IP addresses
+      {mod_ippool,
+        [
+          %% Set this option to false when running
+          %% on extra nodes in a cluster environment
+          {allocate, true},
+
+          %% Always set Framed-IP-Address from default pool,
+          %% otherwise wait for Pool-Name reply attribute
+          {mandatory, true},
+
+          %% Default pool name (only used if mandatory enabled)
+          {default, main},
+
+          {pools,
+            [
+              %% You can define a range using only fourth octet
+              {main, [{"10.10.1.50", "10.10.1.100"}]}
+            ]}
+        ]}
   ]}.
