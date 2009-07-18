@@ -11,7 +11,7 @@ INCLUDE=-I/opt/local/lib/erlang/usr/include
 else
 CFLAGS=-Wall -fpic -shared
 LDFLAGS=-lcrypto
-INCLUDE=I/usr/lib/erlang/usr/include
+INCLUDE=-I/usr/lib/erlang/usr/include
 endif
 
 compile: $(LIB_DIR) \
