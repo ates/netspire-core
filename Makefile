@@ -5,7 +5,7 @@ SNODE_NAME=netspire
 EFLAGS=-pa ebin $(CONFIG_FLAGS) $(MNESIA_FLAGS) -sname $(SNODE_NAME)
 VSN=$(shell awk -F\" '/vsn/ { print $$2 }\' netspire.app)
 
-ifeq ($(shell which rlwrap),)
+ifeq ($(shell which rlwrap 2>/dev/null),)
 ERL=erl
 else
 ERL=rlwrap erl -oldshell
@@ -27,7 +27,7 @@ clean:
 	make -C c_src clean
 	test ! -d doc || rm -rf doc
 	rm -rf ebin erl_crash.dump
-	find . -name "*~" -exec rm -rf {} \;
+	find . -name "*~" -delete
 
 run: compile
 	$(ERL) $(EFLAGS) -eval 'application:start($(APP_NAME)).'
