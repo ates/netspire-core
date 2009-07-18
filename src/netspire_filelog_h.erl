@@ -55,6 +55,9 @@ handle_info({check_log_size, File, Size}, State) ->
             {ok, State}
     end;
 
+handle_info({'EXIT', _Pid, shutdown}, _State) ->
+    remove_handler;
+
 handle_info(_Info, State) ->
     {noreply, State}.
 
