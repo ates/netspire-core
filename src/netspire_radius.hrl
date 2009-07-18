@@ -1,0 +1,13 @@
+-define(ACCESS_ACCEPT, 2).
+-define(ACCESS_REJECT, 3).
+-define(USER_NAME, 1).
+-define(USER_PASSWORD, 2).
+-define(ACCT_RESPONSE, 5).
+-define(FRAMED_IP_ADDRESS, 8).
+-define(ACCT_SESSION_ID, 44).
+-define(ACCT_STATUS_TYPE, 40).
+-define(ACCT_INTERIM_INTERVAL, 85).
+-define(MS_CHAP_CHALLENGE, {311, 11}).
+-define(MS_CHAP2_RESPONSE, {311, 25}).
+-define(MS_CHAP2_SUCCESS, {311, 26}).
+-define(MS_CHAP_ERROR, {311, 2}).
