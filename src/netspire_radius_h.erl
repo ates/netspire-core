@@ -43,10 +43,7 @@ do_auth([Request, UserName, Client] = Args) ->
                     do_accept(Request, Attrs, Client);
                 {reject, Attrs} ->
                     do_reject(Request, Attrs, Client);
-                undefined ->
-                    {ok, #radius_packet{code = ?ACCESS_REJECT}};
-                Any ->
-                    ?INFO_MSG(">>>> ~p~n",[Any]),
+                _Any ->
                     {ok, #radius_packet{code = ?ACCESS_REJECT}}
             end;
         undefined ->
