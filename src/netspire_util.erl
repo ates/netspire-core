@@ -1,5 +1,5 @@
 -module(netspire_util).
--export([ip4_to_int/1, int_to_ip4/1]).
+-export([ip4_to_int/1, int_to_ip4/1, timestamp/0]).
 
 ip4_to_int({I1, I2, I3, I4}) ->
     <<I:4/big-integer-unit:8>> = <<I1, I2, I3, I4>>,
@@ -15,3 +15,7 @@ int_to_ip4(Int) ->
     C = (Int div 256) rem 256,
     D = Int rem 256,
     {A, B, C, D}.
+
+timestamp() ->
+    {MegaSecs, Secs, _} = erlang:now(),
+    MegaSecs * 1000000 + Secs.
