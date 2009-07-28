@@ -106,10 +106,18 @@ parse_option(["has_tag"]) ->
 parse_option(["encrypt", Value]) ->
     {encrypt, list_to_integer(Value)}.
 
+lookup_attribute(Name) when is_list(Name) ->
+    Pat = {attribute, '_', '_', Name, '_'},
+    case ets:match_object(?ATTRS_TABLE, Pat, 1) of
+        {[Attr], _} ->
+            Attr;
+        [] ->
+            not_found
+    end;
 lookup_attribute(Code) ->
     case ets:lookup(?ATTRS_TABLE, Code) of
-        [Name] ->
-            Name;
+        [Attr] ->
+            Attr;
         [] ->
             not_found
     end.
