@@ -32,7 +32,7 @@ override_global.
 {services,
     [
         %% NetFlow gathering service
-        {netspire_netflow, 
+        {netspire_netflow,
           [
             %% Bind socket to special address.
             %% Specify inet6 instead of inet for IPv6 address family.
@@ -48,11 +48,13 @@ override_global.
                 {acct, {inet, "0.0.0.0", 1813}}
               ]},
 
-              %% Service bindings
+            %% Service bindings
             {auth,
               [
-                %% List of clients (NAS)
-                {client, {pptpd, "127.0.0.1", "testing123"}}
+                %% List of NAS'es that will be allowed to send
+                %% requests to this RADIUS listener
+                {client, {pptpd1, "127.0.0.1", "testing123"}},
+                {client, {pptpd2, "10.10.0.1", "testing123"}}
 
                 %% Other options defined here will be passed to
                 %% backend, so custom implementations can handle
@@ -60,7 +62,7 @@ override_global.
               ]},
             {acct,
               [
-                {client, {pptpd, "127.0.0.1", "testing123"}}
+                {client, {pptpd1, "127.0.0.1", "testing123"}}
               ]}
           ]}
     ]}.
