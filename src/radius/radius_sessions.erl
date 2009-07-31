@@ -4,6 +4,7 @@
 -export([init_mnesia/0,
          get_inactive/0,
          is_exist/1,
+         fetch/1,
          prepare/3,
          prepare/4,
          start/3,
@@ -43,6 +44,9 @@ is_exist(UserName) ->
         _ ->
             true
     end.
+
+fetch(SID) ->
+    mnesia:dirty_read(session, SID).
 
 prepare(UserName, IP, Timeout) ->
     prepare(UserName, IP, Timeout, undefined).
