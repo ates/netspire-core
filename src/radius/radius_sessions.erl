@@ -8,6 +8,7 @@
          prepare/4,
          start/3,
          start/4,
+         update/2,
          interim/2,
          interim/3,
          stop/2,
@@ -92,6 +93,24 @@ start(UserName, SID, ExpiresAt, Fun) ->
         {aborted, Reason} ->
             Msg = "An error occured while starting session ~s for ~s~n",
             ?ERROR_MSG(Msg, [SID, UserName]),
+            {error, Reason}
+    end.
+
+update(SID, Fun) ->
+    F = fun() ->
+            case mnesia:read(session, SID, write) of
+                [S] ->
+                    S1 = Fun(S),
+                    mnesia:write(S1),
+                    S1;
+                _ ->
+                    mnesia:abort(not_found)
+            end
+        end,
+    case mnesia:transaction(F) of
+        {atomic, Result} ->
+            {ok, Result};
+        {aborted, Reason} ->
             {error, Reason}
     end.
 
