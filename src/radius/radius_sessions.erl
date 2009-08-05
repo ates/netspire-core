@@ -18,10 +18,10 @@
          expire/1,
          purge/1]).
 
--include_lib("stdlib/include/qlc.hrl").
--include("../netspire.hrl").
 
--record(session, {id, ip, username, status, started_at, expires_at, finished_at, data}).
+-include("radius.hrl").
+-include("../netspire.hrl").
+-include_lib("stdlib/include/qlc.hrl").
 
 init_mnesia() ->
     mnesia:create_table(session, [{disc_copies, [node()]},
@@ -77,7 +77,7 @@ start(UserName, SID, ExpiresAt) ->
     start(UserName, SID, ExpiresAt, fun(P) -> P end).
 
 start(UserName, SID, ExpiresAt, Fun) ->
-    Pattern = {session, '_', '_', UserName, new, '_', '_', '_', '_'},
+    Pattern = {session, '_', '_', UserName, new, '_', '_', '_', '_', '_'},
     F = fun() ->
             case mnesia:match_object(session, Pattern, write) of
                 [S] ->
@@ -122,7 +122,7 @@ interim(SID, ExpiresAt) ->
     interim(SID, ExpiresAt, fun(P) -> P end).
 
 interim(SID, ExpiresAt, Fun) ->
-    Pattern = {session, SID, '_', '_', active, '_', '_', '_', '_'},
+    Pattern = {session, SID, '_', '_', active, '_', '_', '_', '_', '_'},
     F = fun() ->
             [S] = mnesia:match_object(session, Pattern, write),
             S1 = S#session{expires_at = ExpiresAt},
