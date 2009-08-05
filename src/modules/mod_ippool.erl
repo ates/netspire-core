@@ -30,7 +30,7 @@ start(Options) ->
     ?INFO_MSG("Starting dynamic module ~p~n", [?MODULE]),
     ChildSpec = {?SERVER,
                  {?MODULE, start_link, []},
-                 temporary,
+                 transient,
                  1000,
                  worker,
                  [?MODULE]},
@@ -128,8 +128,6 @@ handle_call(info, _From, State) ->
     Result = lists:map(F, mnesia:dirty_all_keys(ippool)),
     {reply, Result, State};
 handle_call(stop, _From, State) ->
-    netspire_hooks:delete(radius_auth_response, ?MODULE, add_framed_ip),
-    netspire_hooks:delete(radius_acct_request, ?MODULE, free_framed_ip),
     {stop, normal, ok, State};
 handle_call(_Request, _From, State) ->
     Reply = ok,
@@ -175,4 +173,6 @@ code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
 terminate(_Reason, _State) ->
+    netspire_hooks:delete(radius_auth_response, ?MODULE, add_framed_ip),
+    netspire_hooks:delete(radius_acct_request, ?MODULE, free_framed_ip),
     ok.
