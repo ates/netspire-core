@@ -109,26 +109,24 @@ encode_attributes([], Bin) ->
 encode_attributes([A | Attrs], Bin) ->
     encode_attributes(Attrs, concat_binary([Bin, encode_attribute(A)])).
 
-encode_attribute({{Id, Type}, Value}) ->
-    case radius_dict:lookup_attribute({Id, Type}) of
+encode_attribute({Code, Value}) ->
+    case radius_dict:lookup_attribute(Code) of
         not_found ->
             <<>>;
-        A ->
-            Bin = typecast_value(Value, A#attribute.type),
-            Size = byte_size(Bin),
-            VLength = 8 + Size,
-            ALength = 2 + Size,
-            <<?VENDOR_SPECIFIC:8, VLength:8, Id:32, Type:8, ALength:8, Bin/binary>>
-    end;
-encode_attribute({Type, Value}) ->
-    case radius_dict:lookup_attribute(Type) of
-        not_found ->
-            <<>>;
-        A ->
-            Bin = typecast_value(Value, A#attribute.type),
-            Length = 2 + byte_size(Bin),
-            <<Type:8, Length:8, Bin/binary>>
+        #attribute{code = Code1, type = Type} ->
+            encode_attribute(Code1, Type, Value)
     end.
+
+encode_attribute({Id, Code}, Type, Value) ->
+    Bin = typecast_value(Value, Type),
+    Size = byte_size(Bin),
+    VLength = 8 + Size,
+    ALength = 2 + Size,
+    <<?VENDOR_SPECIFIC:8, VLength:8, Id:32, Code:8, ALength:8, Bin/binary>>;
+encode_attribute(Code, Type, Value) ->
+    Bin = typecast_value(Value, Type),
+    Length = 2 + byte_size(Bin),
+    <<Code:8, Length:8, Bin/binary>>.
 
 typecast_value(Value, _Type) when is_binary(Value) ->
     Value;
