@@ -8,6 +8,7 @@
 
 -export([decode_packet/1,
          encode_response/3,
+         encode_attributes/1,
          identify_packet/1,
          attribute_value/2]).
 
@@ -97,6 +98,9 @@ encode_response(Request, Response, Secret) ->
     Length = <<(20 + byte_size(Attrs)):16>>,
     Auth = erlang:md5([Code, Ident, Length, ReqAuth, Attrs, Secret]),
     [Code, Ident, Length, Auth, Attrs].
+
+encode_attributes(Attrs) ->
+    encode_attributes(Attrs, <<>>).
 
 encode_attributes(undefined, <<>>) ->
     <<>>;
