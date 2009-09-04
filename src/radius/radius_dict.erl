@@ -111,7 +111,7 @@ lookup_attribute(Name) when is_list(Name) ->
     case ets:match_object(?ATTRS_TABLE, Pat, 1) of
         {[Attr], _} ->
             Attr;
-        [] ->
+        '$end_of_table' ->
             not_found
     end;
 lookup_attribute(Code) ->
