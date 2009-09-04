@@ -81,12 +81,27 @@ decode_value(Bin, Length) ->
     <<Value : Length/binary, Rest/binary>> = Bin,
     {Value, Rest}.
 
-attribute_value(Type, Packet) ->
-    case lists:keysearch(Type, 1, Packet#radius_packet.attrs) of
-        {value, {_Type, Value}} ->
+attribute_value(Code, Packet) when is_record(Packet, radius_packet) ->
+    attribute_value(Code, Packet#radius_packet.attrs);
+attribute_value(Code, Attrs) when is_list(Attrs) ->
+    case radius_dict:lookup_attribute(Code) of
+        not_found ->
+            undefined;
+        #attribute{code = Code1, name = Name} ->
+            lookup_value(Code1, Name, Attrs)
+    end.
+
+lookup_value(Code, Name, Attrs) ->
+    case lists:keysearch(Code, 1, Attrs) of
+        {value, {_, Value}} ->
             Value;
         false ->
-            undefined
+            case lists:keysearch(Name, 1, Attrs) of
+                {value, {_, Value}} ->
+                    Value;
+                false ->
+                    undefined
+            end
     end.
 
 encode_response(Request, Response, Secret) ->
