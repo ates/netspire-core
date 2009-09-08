@@ -1,0 +1,65 @@
+ERLANG_CFLAGS= @ERLANG_CFLAGS@
+ERLANG_LIBS = @ERLANG_LIBS@
+
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+
+SUBDIRS = src/radius src/crypto src/modules src/netflow c_src
+ERLBEHAVS = src/gen_module.erl src/radius/gen_radius.erl
+SOURCES_ALL = $(wildcard src/*.erl)
+SOURCES = $(filter-out $(ERLBEHAVS),$(SOURCES_ALL))
+ERLBEHAVBEAMS = $(ERLBEHAVS:.erl=.beam)
+BEAMS = $(SOURCES:.erl=.beam)
+
+ERLC_FLAGS = -o ebin
+
+DESTDIR = @localstatedir@
+
+BEAMDIR = $(DESTDIR)/ebin
+SPOOLDIR = $(DESTDIR)/db
+PRIVDIR = $(DESTDIR)/priv
+SODIR = $(PRIVDIR)/lib
+BINDIR = $(DESTDIR)/bin
+CONFDIR = $(DESTDIR)/etc
+LOGDIR = $(DESTDIR)/log
+
+all: checks compile-beam all-recursive
+
+checks:
+	test -d ebin || mkdir ebin
+
+compile-beam: $(ERLBEHAVBEAMS) $(BEAMS)
+
+$(BEAMS): $(ERLBEHAVBEAMS)
+
+%.beam: %.erl
+	@ERLC@ $(ERLC_FLAGS) $<
+
+all-recursive distclean-recursive:
+	@subdirs="$(SUBDIRS)"; for subdir in $$subdirs; do \
+	target=`echo $@|sed 's,-recursive,,'`; \
+	echo making $$target in $$subdir; \
+	(cd $$subdir && $(MAKE) $$target) || exit 1; \
+	done
+
+install: all
+	install -d $(BEAMDIR)
+	install -m 644 *.beam $(BEAMDIR)
+	install -m 644 ../netspire.app $(BEAMDIR)
+	install -d -m 750 $(SPOOLDIR)
+	install -d $(SODIR)
+	install -d $(BINDIR)
+	install -m 644 *.so $(SODIR)
+	install -d -m 750 $(ETCDIR)
+	install -m 644 ../netspire.conf.sample $(ETCDIR)
+	install -d -m 750 $(LOGDIR)
+
+clean:
+	rm -f ebin/*.beam
+
+distclean: distclean-recursive
+	rm -f config.status
+	rm -f config.log
+	rm -f Makefile
+	rm -f configure
+	rm -rf autom4te.cache
