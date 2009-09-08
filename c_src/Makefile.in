@@ -7,13 +7,11 @@ ERLANG_CFLAGS = @ERLANG_CFLAGS@
 ERLANG_LIBS = @ERLANG_LIBS@
 
 ifeq ($(TARGET),Darwin)
-	CFLAGS=-c -Wall -O2 -no-cpp-precomp -DUSE_THREADS -D_THREAD_SAFE -D_REENTRANT -fPIC -fno-common
+	CFLAGS=$(ERLANG_CFLAGS) -c -Wall -O2 -no-cpp-precomp -DUSE_THREADS -D_THREAD_SAFE -D_REENTRANT -fPIC -fno-common
 	LDFLAGS=-L/usr/lib -lcrypto -bundle -flat_namespace -undefined suppress
-	INCLUDE=-I/opt/local/lib/erlang/usr/include
 else
-	CFLAGS=-Wall -fpic -shared
-	LDFLAGS=-lcrypto
-	INCLUDE=-I/usr/lib/erlang/usr/include
+	CFLAGS=$(ERLANG_CFLAGS) -Wall -fpic -shared
+	LDFLAGS=$(ERLANG_LIBS) -lcrypto
 endif
 
 all: $(LIB_DIR) netspire_crypto_drv.so
@@ -24,10 +22,10 @@ $(LIB_DIR):
 
 netspire_crypto_drv.so: netspire_crypto_drv.c
 ifeq ($(TARGET), Darwin)
-    $(CC) $(INCLUDE) $(CFLAGS) -o $(OBJ_DIR)/netspire_crypto_drv.o netspire_crypto_drv.c
+    $(CC) $(CFLAGS) -o $(OBJ_DIR)/netspire_crypto_drv.o netspire_crypto_drv.c
     $(CC) $(LDFLAGS) -o $(LIB_DIR)/netspire_crypto_drv.so $(OBJ_DIR)/netspire_crypto_drv.o
 else
-	$(CC) $(INCLUDE) $(LDFLAGS) $(CFLAGS) -o $(LIB_DIR)/netspire_crypto_drv.so netspire_crypto_drv.c
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $(LIB_DIR)/netspire_crypto_drv.so netspire_crypto_drv.c
 endif
 
 clean:
