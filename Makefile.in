@@ -11,7 +11,7 @@ SOURCES = $(filter-out $(ERLBEHAVS),$(SOURCES_ALL))
 ERLBEHAVBEAMS = $(ERLBEHAVS:.erl=.beam)
 BEAMS = $(SOURCES:.erl=.beam)
 
-ERLC_FLAGS = -o ebin
+ERLC_FLAGS = -o ebin -pa ebin
 
 DESTDIR = @localstatedir@
 
@@ -35,7 +35,7 @@ $(BEAMS): $(ERLBEHAVBEAMS)
 %.beam: %.erl
 	@ERLC@ $(ERLC_FLAGS) $<
 
-all-recursive distclean-recursive:
+all-recursive clean-recursive distclean-recursive:
 	@subdirs="$(SUBDIRS)"; for subdir in $$subdirs; do \
 	target=`echo $@|sed 's,-recursive,,'`; \
 	echo making $$target in $$subdir; \
@@ -55,9 +55,9 @@ install: all
 	install -d -m 750 $(LOGDIR)
 
 clean:
-	rm -f ebin/*.beam
+	rm -rf ebin
 
-distclean: distclean-recursive
+distclean: clean clean-recursive distclean-recursive
 	rm -f config.status
 	rm -f config.log
 	rm -f Makefile
