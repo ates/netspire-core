@@ -22,8 +22,8 @@ $(LIB_DIR):
 
 netspire_crypto_drv.so: netspire_crypto_drv.c
 ifeq ($(TARGET), Darwin)
-    $(CC) $(CFLAGS) -o $(OBJ_DIR)/netspire_crypto_drv.o netspire_crypto_drv.c
-    $(CC) $(LDFLAGS) -o $(LIB_DIR)/netspire_crypto_drv.so $(OBJ_DIR)/netspire_crypto_drv.o
+	$(CC) $(CFLAGS) -o $(OBJ_DIR)/netspire_crypto_drv.o netspire_crypto_drv.c
+	$(CC) $(LDFLAGS) -o $(LIB_DIR)/netspire_crypto_drv.so $(OBJ_DIR)/netspire_crypto_drv.o
 else
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $(LIB_DIR)/netspire_crypto_drv.so netspire_crypto_drv.c
 endif
