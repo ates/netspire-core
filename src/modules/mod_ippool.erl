@@ -21,14 +21,12 @@
 -include("../netspire_radius.hrl").
 -include("../radius/radius.hrl").
 
--define(SERVER, ?MODULE).
-
 -record(state, {}).
 -record(ippool_entry, {ip, pool, in_use = false}).
 
 start(Options) ->
     ?INFO_MSG("Starting dynamic module ~p~n", [?MODULE]),
-    ChildSpec = {?SERVER,
+    ChildSpec = {?MODULE,
                  {?MODULE, start_link, []},
                  transient,
                  1000,
@@ -47,9 +45,9 @@ start(Options) ->
 
 stop() ->
     ?INFO_MSG("Stopping dynamic module ~p~n", [?MODULE]),
-    gen_server:call(?SERVER, stop),
-    supervisor:terminate_child(netspire_sup, ?SERVER),
-    supervisor:delete_child(netspire_sup, ?SERVER).
+    gen_server:call(?MODULE, stop),
+    supervisor:terminate_child(netspire_sup, ?MODULE),
+    supervisor:delete_child(netspire_sup, ?MODULE).
 
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
