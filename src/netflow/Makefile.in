@@ -19,6 +19,7 @@ $(OUTDIR)/%.beam: %.erl
 	@ERLC@ -W $(EFLAGS) -o $(OUTDIR) $<
 
 clean:
+	rm -f $(BEAMS)
 
 distclean:
 	rm -f Makefile

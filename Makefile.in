@@ -2,18 +2,10 @@ ERLANG_CFLAGS= @ERLANG_CFLAGS@
 ERLANG_LIBS = @ERLANG_LIBS@
 
 prefix = @prefix@
-exec_prefix = @exec_prefix@
 
-SUBDIRS = src/radius src/crypto src/modules src/netflow c_src
-ERLBEHAVS = src/gen_module.erl src/radius/gen_radius.erl
-SOURCES_ALL = $(wildcard src/*.erl)
-SOURCES = $(filter-out $(ERLBEHAVS),$(SOURCES_ALL))
-ERLBEHAVBEAMS = $(ERLBEHAVS:.erl=.beam)
-BEAMS = $(SOURCES:.erl=.beam)
+SUBDIRS = src/radius src src/crypto src/modules src/netflow c_src
 
-ERLC_FLAGS = -o ebin -pa ebin
-
-DESTDIR = @localstatedir@
+DESTDIR = $(prefix)
 
 BEAMDIR = $(DESTDIR)/ebin
 SPOOLDIR = $(DESTDIR)/db
@@ -22,18 +14,13 @@ SODIR = $(PRIVDIR)/lib
 BINDIR = $(DESTDIR)/bin
 CONFDIR = $(DESTDIR)/etc
 LOGDIR = $(DESTDIR)/log
+ETCDIR = $(DESTDIR)/etc
 
-all: checks compile-beam all-recursive
+all: checks all-recursive
+	test -r netspire.app && cp netspire.app ebin
 
 checks:
 	test -d ebin || mkdir ebin
-
-compile-beam: $(ERLBEHAVBEAMS) $(BEAMS)
-
-$(BEAMS): $(ERLBEHAVBEAMS)
-
-%.beam: %.erl
-	@ERLC@ $(ERLC_FLAGS) $<
 
 all-recursive clean-recursive distclean-recursive:
 	@subdirs="$(SUBDIRS)"; for subdir in $$subdirs; do \
@@ -44,22 +31,31 @@ all-recursive clean-recursive distclean-recursive:
 
 install: all
 	install -d $(BEAMDIR)
-	install -m 644 *.beam $(BEAMDIR)
-	install -m 644 ../netspire.app $(BEAMDIR)
+	install -m 644 ebin/*.beam $(BEAMDIR)
+	install -m 644 netspire.app $(BEAMDIR)
 	install -d -m 750 $(SPOOLDIR)
 	install -d $(SODIR)
 	install -d $(BINDIR)
-	install -m 644 *.so $(SODIR)
+	install -m 644 priv/lib/*.so $(SODIR)
+	install -d $(PRIVDIR)
+	install -d $(PRIVDIR)/radius
+	install -m 644 priv/radius/* $(PRIVDIR)/radius
 	install -d -m 750 $(ETCDIR)
-	install -m 644 ../netspire.conf.sample $(ETCDIR)
+	install -m 644 netspire.conf.sample $(ETCDIR)
 	install -d -m 750 $(LOGDIR)
 
-clean:
-	rm -rf ebin
+run: all
+	@ERL@ -pa ebin -mnesia dir \"/tmp/netspire\" -netspire config \"netspire.conf\" \
+		-sname netspire -eval 'application:start(netspire).'
+
+clean: clean-recursive
+	rm -f erl_crash.dump
+	find . -name "*~" -exec rm -f {} \;
 
 distclean: clean clean-recursive distclean-recursive
 	rm -f config.status
 	rm -f config.log
 	rm -f Makefile
 	rm -f configure
-	rm -rf autom4te.cache
+	rm -f erl_crash.dump
+	rm -rf ebin autom4te.cache

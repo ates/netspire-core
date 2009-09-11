@@ -7,6 +7,7 @@ LIBS = @LIBS@
 ERLANG_CFLAGS = @ERLANG_CFLAGS@
 ERLANG_LIBS = @ERLANG_LIBS@
 
+
 SOURCES = $(wildcard *.erl)
 OUTDIR = ../../ebin
 BEAMS = $(addprefix $(OUTDIR)/,$(SOURCES:.erl=.beam))
@@ -19,6 +20,7 @@ $(OUTDIR)/%.beam: %.erl
 	@ERLC@ -W $(EFLAGS) -o $(OUTDIR) $<
 
 clean:
+	rm -f $(BEAMS)
 
 distclean:
 	rm -f Makefile

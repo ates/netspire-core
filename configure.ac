@@ -20,6 +20,7 @@ AC_FUNC_MALLOC
 AC_HEADER_STDC
 
 AC_CONFIG_FILES([Makefile
+                 src/Makefile
                  c_src/Makefile
                  src/crypto/Makefile
                  src/modules/Makefile

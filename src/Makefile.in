@@ -7,11 +7,11 @@ LIBS = @LIBS@
 ERLANG_CFLAGS = @ERLANG_CFLAGS@
 ERLANG_LIBS = @ERLANG_LIBS@
 
-EFLAGS = -I ..
-
 SOURCES = $(wildcard *.erl)
-OUTDIR = ../../ebin
+OUTDIR = ../ebin
 BEAMS = $(addprefix $(OUTDIR)/,$(SOURCES:.erl=.beam))
+
+EFLAGS = -I .. -pa $(OUTDIR)
 
 all: $(BEAMS)
 
