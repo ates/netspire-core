@@ -154,6 +154,9 @@ typecast_value(Value, integer) ->
     <<Value:32>>;
 typecast_value(Value, octets) when is_list(Value) ->
     list_to_binary(Value);
+typecast_value(IP, ipaddr) when is_list(IP) ->
+    {ok, {A, B, C, D}} = inet_parse:address(IP),
+    <<A:8, B:8, C:8, D:8>>;
 typecast_value({A, B, C, D}, ipaddr) ->
     <<A:8, B:8, C:8, D:8>>.
 
