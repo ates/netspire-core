@@ -65,15 +65,19 @@ info() ->
     gen_server:call(?MODULE, info).
 
 add_framed_ip(Response, _Request, _Client) ->
-    Pool = gen_module:get_option(?MODULE, default, main),
-    case lease(Pool) of
-        false ->
-            ?WARNING_MSG("### No more free ip addresses ###~n", []),
-            {stop, {reject, []}};
-        {value, IP} ->
-            ?INFO_MSG("### Adding Framed-IP-Address ~p ###~n", [IP]),
-            Attrs = Response#radius_packet.attrs,
-            Response#radius_packet{attrs = [{?FRAMED_IP_ADDRESS, IP} | Attrs]}
+    case radius:attribute_value(?FRAMED_IP_ADDRESS, Response) of
+        undefined ->
+            Pool = gen_module:get_option(?MODULE, default, main),
+            case lease(Pool) of
+                false ->
+                    ?WARNING_MSG("### No more free ip addresses ###~n", []),
+                    {stop, {reject, []}};
+                {value, IP} ->
+                    ?INFO_MSG("### Adding Framed-IP-Address ~p ###~n", [IP]),
+                    Attrs = Response#radius_packet.attrs,
+                    Response#radius_packet{attrs = [{?FRAMED_IP_ADDRESS, IP} | Attrs]}
+            end;
+        _ -> Response
     end.
 
 free_framed_ip(Response, 2, Request, _Client) ->
