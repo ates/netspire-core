@@ -40,7 +40,7 @@ do_auth([Request, UserName, Client] = Args) ->
             Args1 = [Request, UserName, Password, Replies, Client],
             case netspire_hooks:run_fold(radius_auth, undefined, Args1) of
                 {accept, Attrs} ->
-                    do_accept(Request, Attrs, Client);
+                    do_accept(Request, Attrs ++ Replies, Client);
                 {reject, Attrs} ->
                     do_reject(Request, Attrs, Client);
                 _Any ->
