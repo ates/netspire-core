@@ -147,6 +147,9 @@ typecast_value(Value, _Type) when is_binary(Value) ->
     Value;
 typecast_value(Value, string) ->
     list_to_binary(Value);
+typecast_value(Value, integer) when is_list(Value) ->
+    Value1 = list_to_integer(Value),
+    <<Value1:32>>;
 typecast_value(Value, integer) ->
     <<Value:32>>;
 typecast_value(Value, octets) when is_list(Value) ->
