@@ -21,10 +21,12 @@ As per the Wikipedia:
 Installation
 ------------
 
-Currently Netspire runs on Linux and Mac OS X systems. Clone this repo or download an archive, then execute:
-
+Currently Netspire runs on Linux, BSD based systems and Mac OS X. Clone this repo or download an archive, then execute:
+    $ autoconf
+    $ ./configure
+    $ make (On BSD systems you must use 'gmake' instead 'make')
 	$ cp netspire.conf.sample netspire.conf
-	$ make run
+	$ make run (using for testing purpose)
 
 Future plans
 ------------
