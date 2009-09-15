@@ -20,22 +20,22 @@ stop() ->
     ?INFO_MSG("Stopping dynamic module ~p~n", [?MODULE]),
     netspire_hooks:delete(radius_auth, ?MODULE, verify_pap).
 
-verify_pap(_, Request, UserName, Password, _Replies, Client) ->
+verify_pap(_, Request, UserName, Password, Replies, Client) ->
     case radius:attribute_value(?USER_PASSWORD, Request) of
         undefined ->
             Request;
         UserPassword ->
             Secret = Client#nas_spec.secret,
             Auth = Request#radius_packet.auth,
-            do_pap(UserName, UserPassword, Password, Secret, Auth)
+            do_pap(UserName, UserPassword, Password, Secret, Auth, Replies)
     end.
 
-do_pap(UserName, UserPassword, Password, Secret, Auth) ->
+do_pap(UserName, UserPassword, Password, Secret, Auth, Replies) ->
     PasswordHash = pap_encrypt_password(Password, Secret, Auth),
     case PasswordHash == UserPassword of
         true ->
             ?INFO_MSG("PAP authentication succeeded: ~p~n", [UserName]),
-            {stop, {accept, []}};
+            {stop, {accept, Replies}};
         _ ->
             ?INFO_MSG("PAP authentication failed: ~p~n", [UserName]),
             {stop, {reject, []}}
