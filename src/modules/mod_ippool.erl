@@ -7,7 +7,7 @@
 -export([start_link/0,
          info/0,
          allocate/1,
-         add_framed_ip/3,
+         add_framed_ip/4,
          free_framed_ip/4]).
 
 %% gen_module callbacks
@@ -64,7 +64,7 @@ free(IP) ->
 info() ->
     gen_server:call(?MODULE, info).
 
-add_framed_ip(Response, _Request, _Client) ->
+add_framed_ip(Response, _Request, _Extra, _Client) ->
     case radius:attribute_value(?FRAMED_IP_ADDRESS, Response) of
         undefined ->
             Pool = gen_module:get_option(?MODULE, default, main),
