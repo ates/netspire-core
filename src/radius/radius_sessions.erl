@@ -54,7 +54,6 @@ prepare(UserName, IP, Timeout, Data) ->
     Now = netspire_util:timestamp(),
     ExpiresAt = Now + Timeout,
     SID = {Now, UserName},
-    StrIP = inet_parse:ntoa(IP),
     S = #session{id = SID,
                  ip = IP,
                  status = new,
@@ -65,11 +64,11 @@ prepare(UserName, IP, Timeout, Data) ->
     F = fun() -> mnesia:write(S), S end,
     case mnesia:transaction(F) of
         {atomic, Result} ->
-            ?INFO_MSG("Session prepared for ~s with ~s~n", [UserName, StrIP]),
+            ?INFO_MSG("Session prepared for ~s~n", [UserName]),
             {ok, Result};
         {aborted, Reason} ->
-            Msg = "An error occured while preparing session for ~s with ~s~n",
-            ?ERROR_MSG(Msg, [UserName, StrIP]),
+            Msg = "An error occured while preparing session for ~s~n",
+            ?ERROR_MSG(Msg, [UserName]),
             {error, Reason}
     end.
 
