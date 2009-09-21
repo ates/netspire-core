@@ -92,6 +92,9 @@ override_global.
           %% Default pool name (only used if mandatory enabled)
           {default, main},
 
+          %% IP expiration time, depends on session timeout
+          {timeout, 180},
+
           {pools,
             [
               %% You can define a range using only fourth octet
