@@ -18,7 +18,6 @@
 -record(ippool_entry, {ip, pool, expires_at = 0}).
 
 -define(TIMEOUT, 300).
--define(INTERIM_UPDATE, 3).
 
 start(Options) ->
     ?INFO_MSG("Starting dynamic module ~p~n", [?MODULE]),
