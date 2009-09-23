@@ -11,3 +11,6 @@
 -define(MS_CHAP2_RESPONSE, {311, 25}).
 -define(MS_CHAP2_SUCCESS, {311, 26}).
 -define(MS_CHAP_ERROR, {311, 2}).
+-define(ACCT_START, 1).
+-define(ACCT_STOP, 2).
+-define(INTERIM_UPDATE, 3).

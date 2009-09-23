@@ -36,11 +36,11 @@ process_request(_Type, Request, Client) ->
 
 do_auth([Request, UserName, Client] = Args) ->
     case netspire_hooks:run_fold(radius_acct_lookup, undefined, Args) of
-        {ok, {Password, Replies}} ->
+        {ok, {Password, Replies, Extra}} ->
             Args1 = [Request, UserName, Password, Replies, Client],
             case netspire_hooks:run_fold(radius_auth, undefined, Args1) of
                 {accept, Attrs} ->
-                    do_accept(Request, Attrs, Client);
+                    do_accept(Request, Attrs, Extra, Client);
                 {reject, Attrs} ->
                     do_reject(Request, Attrs, Client);
                 _Any ->
@@ -50,9 +50,9 @@ do_auth([Request, UserName, Client] = Args) ->
             {ok, #radius_packet{code = ?ACCESS_REJECT}}
     end.
 
-do_accept(Request, Attrs, Client) ->
+do_accept(Request, Attrs, Extra, Client) ->
     Response = #radius_packet{code = ?ACCESS_ACCEPT, attrs = Attrs},
-    case netspire_hooks:run_fold(radius_access_accept, Response, [Request, Client]) of
+    case netspire_hooks:run_fold(radius_access_accept, Response, [Request, Extra, Client]) of
         {reject, Attrs1} ->
             do_reject(Request, Attrs1, Client);
         Response1 ->

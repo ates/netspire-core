@@ -21,7 +21,7 @@ stop() ->
     ?INFO_MSG("Stopping dynamic module ~p~n", [?MODULE]),
     netspire_hooks:delete(radius_auth, ?MODULE, verify_mschap_v2).
 
-verify_mschap_v2(_, Request, UserName, Password, _Replies, _Client) ->
+verify_mschap_v2(_, Request, UserName, Password, Replies, _Client) ->
     case radius:attribute_value(?MS_CHAP_CHALLENGE, Request) of
         undefined ->
             Request;
@@ -31,11 +31,11 @@ verify_mschap_v2(_, Request, UserName, Password, _Replies, _Client) ->
                     Request;
                 Value ->
                     ChapResponse = list_to_binary(Value),
-                    do_mschap_v2(UserName, ChapChallenge, ChapResponse, Password)
+                    do_mschap_v2(UserName, ChapChallenge, ChapResponse, Password, Replies)
             end
     end.
 
-do_mschap_v2(UserName, ChapChallenge, ChapResponse, Password) ->
+do_mschap_v2(UserName, ChapChallenge, ChapResponse, Password, Replies) ->
     Password1 = latin1_to_unicode(Password),
     PasswordHash = netspire_crypto:md4(Password1),
     NTResponse = mschap_v2_nt_response(ChapResponse),
@@ -50,7 +50,7 @@ do_mschap_v2(UserName, ChapChallenge, ChapResponse, Password) ->
             Chap2Success = [Ident] ++ AuthResponse,
             Attrs = [{?MS_CHAP2_SUCCESS, Chap2Success}],
             ?INFO_MSG("MS-CHAP-V2 authentication succeeded: ~p~n", [UserName]),
-            {stop, {accept, Attrs}};
+            {stop, {accept, Replies ++ Attrs}};
         _ ->
             ?INFO_MSG("MS-CHAP-V2 authentication failed: ~p~n", [UserName]),
             {stop, {reject, []}}
