@@ -1,0 +1,31 @@
+#!/bin/sh
+
+NODE=netspire
+
+NETSPIRE_DB=%%SPOOLDIR%%
+NETSPIRE_EBIN=%%BEAMDIR%%
+NETSPIRE_CONFIG=%%NETSPIRE_CONFIG%%
+
+function start
+{
+    %%ERL%% \
+    -noinput -detached \
+    -sname $NODE \
+    -pa $NETSPIRE_EBIN \
+    -mnesia dir "\"$NETSPIRE_DB\"" \
+    -netspire config \"$NETSPIRE_CONFIG\" \
+    -eval 'application:start(netspire).'
+}
+
+function usage
+{
+    echo "usage: $0 start"
+    exit 0
+}
+
+[ $# -lt 1 ] && usage
+
+case $1 in
+    start) start;;
+    *) usage;;
+esac

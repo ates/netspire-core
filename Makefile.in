@@ -41,8 +41,14 @@ install: all
 	install -d $(PRIVDIR)/radius
 	install -m 644 priv/radius/* $(PRIVDIR)/radius
 	install -d -m 750 $(ETCDIR)
-	install -m 644 netspire.conf.sample $(ETCDIR)
+	install -m 644 *.conf.sample $(ETCDIR)
 	install -d -m 750 $(LOGDIR)
+	sed < netspirectl.in > netspirectl \
+		-e 's!%%SPOOLDIR%%!$(SPOOLDIR)!g' \
+		-e 's!%%BEAMDIR%%!$(BEAMDIR)!g' \
+		-e 's!%%ERL%%!@ERL@!g' \
+		-e 's!%%NETSPIRE_CONFIG%%!$(ETCDIR)/netspire.conf!g'
+	install -m 755 netspirectl $(BINDIR)
 
 run: all
 	@ERL@ -pa ebin -mnesia dir \"/tmp/netspire\" -netspire config \"netspire.conf\" \
@@ -50,6 +56,7 @@ run: all
 
 clean: clean-recursive
 	rm -f erl_crash.dump
+	rm -f netspirectl
 	find . -name "*~" -exec rm -f {} \;
 
 distclean: clean clean-recursive distclean-recursive
