@@ -1,5 +1,5 @@
 ebin
-netspire.conf
+*.conf
 *.log
 priv/obj/*.o
 priv/lib/*.so
