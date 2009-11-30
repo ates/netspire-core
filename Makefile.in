@@ -1,11 +1,9 @@
 ERLANG_CFLAGS= @ERLANG_CFLAGS@
 ERLANG_LIBS = @ERLANG_LIBS@
 
-prefix = @prefix@
-
 SUBDIRS = src/radius src src/crypto src/modules src/netflow c_src
 
-DESTDIR = $(prefix)
+DESTDIR = @prefix@
 
 BEAMDIR = $(DESTDIR)/ebin
 SPOOLDIR = $(DESTDIR)/db

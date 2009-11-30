@@ -13,7 +13,7 @@ AM_WITH_ERLANG
 AC_C_CONST
 
 # Change default prefix
-AC_PREFIX_DEFAULT(/)
+AC_PREFIX_DEFAULT(/opt/netspire)
 
 # Checks for library functions.
 AC_FUNC_MALLOC
