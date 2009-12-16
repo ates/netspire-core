@@ -114,7 +114,7 @@ add_framed_ip(Response, _Request, _Extra, _Client) ->
                     ?WARNING_MSG("No more free ip addresses~n", []),
                     {stop, {reject, []}};
                 {error, Reason} ->
-                    ?WARNING_MSG("Cannot lease Framed-IP-Address due ~p~n", [Reason]),
+                    ?WARNING_MSG("Cannot lease Framed-IP-Address due to ~p~n", [Reason]),
                     {stop, {reject, []}}
             end;
         _ -> Response
@@ -124,7 +124,7 @@ renew_framed_ip(Response, ?INTERIM_UPDATE, Request, _) ->
     IP = radius:attribute_value(?FRAMED_IP_ADDRESS, Request),
     case renew(IP) of
         {ok, _} ->
-            ?INFO_MSG("Framed-IP-Address ~p renewed~n", [IP]);
+            ?INFO_MSG("Framed-IP-Address ~p is renewed~n", [IP]);
         {error, not_found} ->
             ok;
         {error, Reason} ->
@@ -136,7 +136,7 @@ renew_framed_ip(Response, _, _, _) ->
     Response.
 
 stop() ->
-    ?INFO_MSG("Stopping dynamic module ~p~n", [?MODULE]),
+    ?INFO_MSG("Stop dynamic module ~p~n", [?MODULE]),
     netspire_hooks:delete(radius_auth_response, ?MODULE, add_framed_ip),
     netspire_hooks:delete(radius_acct_request, ?MODULE, free_framed_ip).
 

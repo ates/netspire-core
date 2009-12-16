@@ -11,7 +11,7 @@ start(normal, _StartArgs) ->
     ?INFO_MSG("Checking availability of cluster environment~n", []),
     case net_adm:world() of
         [] ->
-            ?INFO_MSG("Not found any additional nodes~n", []);
+            ?INFO_MSG("No additional nodes were found~n", []);
         Nodes ->
             ?INFO_MSG("Connected nodes: ~p~n", [Nodes])
     end,

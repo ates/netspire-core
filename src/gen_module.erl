@@ -59,7 +59,7 @@ stop_module(Module) ->
             ok
     catch
         exit:Reason ->
-            ?ERROR_MSG("Error while stopping module due ~p", [Reason]),
+            ?ERROR_MSG("Error while stopping module due to ~p", [Reason]),
             {error, Reason}
     end.
 
