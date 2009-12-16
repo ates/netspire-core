@@ -7,10 +7,17 @@
 
 start(normal, _StartArgs) ->
     ?INFO_MSG("Starting application ~p~n", [?MODULE]),
+
+    ?INFO_MSG("Checking availability of cluster environment~n", []),
+    case net_adm:world() of
+        [] ->
+            ?INFO_MSG("Not found any additional nodes~n", []);
+        Nodes ->
+            ?INFO_MSG("Connected nodes: ~p~n", [Nodes])
+    end,
     init_mnesia(),
     netspire_config:start(),
     init_logging(),
-    connect_nodes(),
     gen_module:start(),
     Sup = netspire_sup:start_link(),
     case netspire_config:get_option(code_path) of
@@ -61,16 +68,6 @@ init_mnesia() ->
     end,
     mnesia:start(),
     mnesia:wait_for_tables(mnesia:system_info(local_tables), infinity).
-
-connect_nodes() ->
-    case netspire_config:get_option(nodes) of
-        Nodes when is_list(Nodes) andalso Nodes /= [] ->
-            lists:foreach(fun(Node) -> 
-                        net_kernel:connect_node(Node) end, Nodes),
-            ?INFO_MSG("Connected nodes: ~p~n", [nodes()]);
-        _ ->
-            ok
-    end.
 
 init_logging() ->
     case netspire_config:get_option(logging) of

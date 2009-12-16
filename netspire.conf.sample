@@ -19,10 +19,6 @@ override_global.
   {max_size, 10485760}
 ]}}.
 
-%% Clustering options
-%% {nodes, [node1@host, node2@host, nodeN@host]}.
-{nodes, []}.
-
 %% Code path to load modules from
 {code_path, []}.
 
