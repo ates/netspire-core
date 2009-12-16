@@ -3,3 +3,4 @@ ebin
 *.log
 priv/obj/*.o
 priv/lib/*.so
+erl_crash.dump
