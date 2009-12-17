@@ -1,6 +1,6 @@
 -module(netspire_util).
 
--export([ipconv/1, timestamp/0]).
+-export([ipconv/1, timestamp/0, to_hex/1]).
 
 ipconv({A, B, C, D}) ->
     <<I:4/big-integer-unit:8>> = <<A, B, C, D>>, I;
@@ -25,14 +25,14 @@ timestamp() ->
     {MegaSecs, Secs, _} = erlang:now(),
     MegaSecs * 1000000 + Secs.
 
+to_hex(N) when N < 256 ->
+    [hex(N div 16), hex(N rem 16)].
+
 %% Internal functions
 hex(N) when N < 10 ->
     $0 + N;
 hex(N) when N >= 10, N < 16 ->
     $A + (N - 10).
-
-to_hex(N) when N < 256 ->
-    [hex(N div 16), hex(N rem 16)].
 
 normalizev6(<<>>) ->
     [];
