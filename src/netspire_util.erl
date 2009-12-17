@@ -16,7 +16,7 @@ ipconv(I) when is_integer(I) ->
     {A, B, C, D};
 
 ipconv(IP) when is_list(IP) ->
-    case inet_parse:adress(IP) of
+    case inet_parse:address(IP) of
         {ok, Address} -> ipconv(Address);
         Error -> Error
     end.
