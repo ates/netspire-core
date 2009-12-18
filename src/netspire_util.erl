@@ -6,7 +6,8 @@ ipconv({A, B, C, D}) ->
     <<I:4/big-integer-unit:8>> = <<A, B, C, D>>, I;
 
 ipconv(Bin) when is_binary(Bin) andalso size(Bin) == 16 ->
-    string:join(normalizev6(Bin), ":");
+    Result = string:join(normalizev6(Bin), ":"),
+    string:to_lower(Result);
 
 ipconv(I) when is_integer(I) ->
     A = (I div 16777216) rem 256,
