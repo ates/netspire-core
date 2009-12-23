@@ -7,6 +7,7 @@
 -include("radius.hrl").
 
 -export([decode_packet/1,
+         encode_packet/3,
          encode_response/3,
          encode_attributes/1,
          identify_packet/1,
@@ -103,6 +104,13 @@ lookup_value(Code, Name, Attrs) ->
                     undefined
             end
     end.
+
+encode_packet(Code, Attrs, Secret) ->
+    Ident = 0,
+    Attrs1 = radius:encode_attributes(Attrs),
+    Length = <<(20 + byte_size(Attrs1)):16>>,
+    Auth = erlang:md5([Code, Ident, Length, <<0:128>>, Attrs1, Secret]),
+    [Code, Ident, Length, Auth, Attrs].
 
 encode_response(Request, Response, Secret) ->
     #radius_packet{code = C, attrs = A} = Response,
