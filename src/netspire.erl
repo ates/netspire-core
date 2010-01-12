@@ -68,10 +68,9 @@ init_mnesia() ->
     end,
     mnesia:start(),
     case mnesia:change_config(extra_db_nodes, Nodes) of
-        {ok, []} -> ok;
-        {ok, [_|_]} -> ok;
+        {ok, _} -> ok;
         {error, Reason} ->
-            throw({error, {unable_to_join_cluster, Nodes, Reason}})
+            exit(Reason)
     end,
     mnesia:wait_for_tables(mnesia:system_info(local_tables), infinity).
 
