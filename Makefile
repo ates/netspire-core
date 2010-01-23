@@ -1,5 +1,5 @@
 APP_NAME=netspire
-MNESIA_FLAGS=-mnesia dir \"/netspire\"
+MNESIA_FLAGS=-mnesia dir \"/tmp/netspire\"
 CONFIG_FLAGS=-netspire config \"netspire.conf\"
 SNODE_NAME=netspire
 EFLAGS=-pa ebin $(CONFIG_FLAGS) $(MNESIA_FLAGS) -sname $(SNODE_NAME)
