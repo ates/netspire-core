@@ -77,6 +77,9 @@ override_global.
       %% RADIUS MS-CHAP-V2 auth type
       {mod_mschap_v2, []},
 
+      % RPC service
+      {mod_rpc, {listen, {inet, "0.0.0.0", 9876}}},
+
       %% Pool of IP addresses
       {mod_ippool,
         [
