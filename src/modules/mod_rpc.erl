@@ -4,7 +4,7 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/1, process_request/1]).
+-export([start_link/1]).
 
 %% gen_module callbacks
 -export([start/1, stop/0]).
@@ -15,7 +15,7 @@
 
 -include("../netspire.hrl").
 
--record(state, {socket = undefined}).
+-record(state, {socket}).
 
 start(Options) ->
     ?INFO_MSG("Starting dynamic module ~p~n", [?MODULE]),
@@ -37,9 +37,6 @@ stop() ->
 start_link(Options) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [Options], []).
 
-process_request(Socket) ->
-    gen_server:cast(?MODULE, {process_request, Socket}).
-
 process_listen_options(Options) ->
     case Options of
         {listen, {Family, StrIP, Port}} ->
@@ -54,20 +51,39 @@ process_listen_options(Options) ->
 loop(LSocket) ->
     case gen_tcp:accept(LSocket) of
         {ok, Socket} ->
-            ?MODULE:process_request(Socket);
+            gen_server:cast(?MODULE, {process_request, Socket});
         _ -> ok
     end,
     loop(LSocket).
-             
-process_bert_terms(Bin) ->
-    case binary_to_term(Bin) of
-        {call, Mod, Fun, Options} ->
-            case catch(apply(Mod, Fun, Options)) of
-                {'EXIT', _} -> {noreply};
-                Result -> {reply, Result}
-            end;
-        _ -> {noreply}
+
+process_rpc_request(Socket, {call, Mod, Fun, Args}) ->
+    try
+        Result = apply(Mod, Fun, Args),
+        ?INFO_MSG("RPC call: ~p:~p with args ~p~n", [Mod, Fun, Args]),
+        gen_tcp:send(Socket, term_to_binary({reply, Result}))
+    catch
+        Type:Reason ->
+            ?ERROR_MSG("RPC call ~p:~p with args ~p failed: ~p~n", [Mod, Fun, Args, {Type, Reason}]),
+            gen_tcp:send(Socket, term_to_binary(format_error_reply(Reason)))
+    after
+        gen_tcp:close(Socket)
+    end;
+process_rpc_request(Socket, {cast, Mod, Fun, Args}) ->
+    gen_tcp:send(Socket, term_to_binary({noreply})),
+    ok = gen_tcp:close(Socket),
+    try
+        ?INFO_MSG("RPC cast: ~p:~p with args ~p~n", [Mod, Fun, Args]),
+        apply(Mod, Fun, Args)
+    catch
+        Type:Reason ->
+            ?ERROR_MSG("RPC cast ~p:~p with args ~p failed: ~p~n", [Mod, Fun, Args, {Type, Reason}])
     end.
+
+format_error_reply(Reason) ->
+    % TODO: Send predefined error codes if no such module or function
+    Fun = fun(I) -> list_to_binary(io_lib:format("~p", [I])) end,
+    Backtrace = lists:map(Fun, erlang:get_stacktrace()),
+    {error, {server, 100, <<"BERTError">>, Reason, Backtrace}}.
 
 init([Options]) ->
     case process_listen_options(Options) of
@@ -86,21 +102,20 @@ init([Options]) ->
             {stop, Reason}
     end.
 
-handle_info(_Request, State) -> {noreply, State}.
-
-handle_call(_Request, _From, State) -> {reply, ok, State}.
-
 handle_cast({process_request, Socket}, State) ->
     case gen_tcp:recv(Socket, 0) of
         {ok, Bin} ->
-            Result = process_bert_terms(Bin),
-            gen_tcp:send(Socket, term_to_binary(Result));
+            Request = binary_to_term(Bin),
+            process_rpc_request(Socket, Request);
         {error, closed} ->
             gen_tcp:close(Socket)
     end,
     {noreply, State};
-
 handle_cast(_Request, State) -> {noreply, State}.
+
+handle_info(_Request, State) -> {noreply, State}.
+
+handle_call(_Request, _From, State) -> {reply, ok, State}.
 
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 
