@@ -42,7 +42,7 @@ start_module(Module, Options) ->
                     {error, Reason}
             end;
         _ ->
-            ?ERROR_MSG("Dynamic module ~p already started~n", [Module]),
+            ?WARNING_MSG("Dynamic module ~p already started~n", [Module]),
             {error, already_started}
     end.
 
