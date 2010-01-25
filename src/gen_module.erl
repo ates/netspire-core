@@ -38,10 +38,12 @@ start_module(Module, Options) ->
                     ok
             catch
                 _:Reason ->
-                    ?ERROR_MSG("Error while starting module ~p: ~p~n", [Module, Reason])
+                    ?ERROR_MSG("Error while starting module ~p: ~p~n", [Module, Reason]),
+                    {error, Reason}
             end;
         _ ->
-            ?ERROR_MSG("Dynamic module ~p already started~n", [Module])
+            ?ERROR_MSG("Dynamic module ~p already started~n", [Module]),
+            {error, already_started}
     end.
 
 stop_module(Module) ->
