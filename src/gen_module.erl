@@ -47,6 +47,15 @@ start_module(Module, Options) ->
     end.
 
 stop_module(Module) ->
+    case ets:lookup(?MODULES_TABLE, Module) of
+        [] ->
+            ?WARNING_MSG("Dynamic module ~p was not started~n", [Module]),
+            {error, not_started};
+        _ ->
+            safely_stop_module(Module)
+    end.
+
+safely_stop_module(Module) ->
     try Module:stop() of
         {wait, ProcList} when is_list(ProcList) ->
             lists:foreach(fun wait_for_process/1, ProcList),
