@@ -8,3 +8,4 @@ configure
 config.status
 autom4te.cache/*
 erl_crash.dump
+netspirectl
