@@ -1,3 +1,4 @@
+%%% Implementation of CHAP authentication protocol (RFC 1994)
 -module(mod_chap).
 
 -behaviour(gen_module).
@@ -12,27 +13,26 @@
 -include("../netspire_radius.hrl").
 -include("../radius/radius.hrl").
 
--define(CHAP_PASSWORD, 3).
--define(CHAP_CHALLENGE, 60).
-
 start(_Options) ->
     ?INFO_MSG("Starting dynamic module ~p~n", [?MODULE]),
     netspire_hooks:add(radius_auth, ?MODULE, verify_chap).
 
 stop() ->
-    ?INFO_MSG("Stopping dynamic module ~p~n", [?MODULE]),
+    ?INFO_MSG("Stop dynamic module ~p~n", [?MODULE]),
     netspire_hooks:delete(radius_auth, ?MODULE, verify_chap).
 
 verify_chap(_, Request, UserName, Password, Replies, _Client) ->
     case radius:attribute_value(?CHAP_PASSWORD, Request) of
         undefined -> undefined;
-        UserPassword ->
-            case radius:attribute_value(?CHAP_CHALLENGE, Request) of
-                undefined -> undefined;
-                Challenge ->
-                    ChapPassword = list_to_binary(UserPassword),
-                    do_chap(UserName, ChapPassword, Challenge, Password, Replies)
-            end
+        Value ->
+            Challenge =
+                case radius:attribute_value(?CHAP_CHALLENGE, Request) of
+                	undefined -> Request#radius_packet.auth; 
+                    Value ->
+                        Value
+                end,
+            ChapPassword = list_to_binary(Value),
+            do_chap(UserName, ChapPassword, Challenge, Password, Replies)
     end.
 
 do_chap(UserName, <<ChapId, ChapPassword/binary>>, Challenge, Password, Replies) ->

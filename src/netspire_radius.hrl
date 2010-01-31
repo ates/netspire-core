@@ -14,3 +14,5 @@
 -define(ACCT_START, 1).
 -define(ACCT_STOP, 2).
 -define(INTERIM_UPDATE, 3).
+-define(CHAP_PASSWORD, 3).
+-define(CHAP_CHALLENGE, 60).

@@ -79,10 +79,10 @@ handle_info({udp, _Socket, IP, _InPortNo, Packet}, State) ->
             apply_packet_handlers(IP, Pdu, State#state.handlers),
             {noreply, State};
         {error, {badpdu, Reason}} ->
-            ?INFO_MSG("Invalid packet has been discarded due ~p~n", [Reason]),
+            ?INFO_MSG("Invalid packet has been discarded due to ~p~n", [Reason]),
             {noreply, State};
         {error, Reason} ->
-            ?INFO_MSG("Unable to process packet due ~p~n", [Reason]),
+            ?INFO_MSG("Unable to process packet due to ~p~n", [Reason]),
             {noreply, State}
     end.
 

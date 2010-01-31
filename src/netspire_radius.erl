@@ -45,7 +45,7 @@ process_option({Ident, Module, Options}) ->
             Fun = fun(Client) -> add_request_handler(Ref, Module, Client) end,
             lists:foreach(Fun, Clients);
         _ ->
-            ?ERROR_MSG("Radius handler module ~p not found~n", [Module])
+            ?ERROR_MSG("Radius handler module ~p is not found~n", [Module])
     end.
 
 add_request_handler(Ref, Module, {Name, StrIP, Secret}) ->

@@ -64,7 +64,7 @@ prepare(UserName, IP, Timeout, Data) ->
     F = fun() -> mnesia:write(S), S end,
     case mnesia:transaction(F) of
         {atomic, Result} ->
-            ?INFO_MSG("Session prepared for ~s~n", [UserName]),
+            ?INFO_MSG("Session is prepared for ~s~n", [UserName]),
             {ok, Result};
         {aborted, Reason} ->
             Msg = "An error occured while preparing session for ~s~n",
@@ -132,7 +132,7 @@ interim(SID, ExpiresAt, Fun) ->
     case mnesia:transaction(F) of
         {atomic, Result} ->
             UserName = Result#session.username,
-            ?INFO_MSG("Session ~s updated for ~s~n", [SID, UserName]),
+            ?INFO_MSG("Session ~s is updated for ~s~n", [SID, UserName]),
             {ok, Result};
         {aborted, Reason} ->
             Msg = "An error occured while updating session ~s~n",
@@ -183,7 +183,7 @@ expire(Time) ->
     case mnesia:transaction(F2) of
         {atomic, Result} ->
             L = length(Result),
-            ?INFO_MSG("~p session(s) has been expired successfully~n", [L]),
+            ?INFO_MSG("~p session(s) has expired successfully~n", [L]),
             {ok, Result};
         {aborted, Reason} ->
             ?ERROR_MSG("An error occured while expiring session(s)~n", []),

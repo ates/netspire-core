@@ -19,10 +19,6 @@ override_global.
   {max_size, 10485760}
 ]}}.
 
-%% Clustering options
-%% {nodes, [node1@host, node2@host, nodeN@host]}.
-{nodes, []}.
-
 %% Code path to load modules from
 {code_path, []}.
 
@@ -75,8 +71,14 @@ override_global.
       %% RADIUS PAP auth type
       {mod_pap, []},
 
+      %% RADIUS CHAP auth type
+      {mod_chap, []},
+
       %% RADIUS MS-CHAP-V2 auth type
       {mod_mschap_v2, []},
+
+      % RPC service
+      {mod_rpc, {listen, {inet, "0.0.0.0", 9876}}},
 
       %% Pool of IP addresses
       {mod_ippool,

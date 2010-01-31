@@ -17,7 +17,7 @@ start(_Options) ->
     netspire_hooks:add(radius_auth, ?MODULE, verify_pap).
 
 stop() ->
-    ?INFO_MSG("Stopping dynamic module ~p~n", [?MODULE]),
+    ?INFO_MSG("Stop dynamic module ~p~n", [?MODULE]),
     netspire_hooks:delete(radius_auth, ?MODULE, verify_pap).
 
 verify_pap(_, Request, UserName, Password, Replies, Client) ->

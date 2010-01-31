@@ -10,7 +10,6 @@ start(normal, _StartArgs) ->
     init_mnesia(),
     netspire_config:start(),
     init_logging(),
-    connect_nodes(),
     gen_module:start(),
     Sup = netspire_sup:start_link(),
     case netspire_config:get_option(code_path) of
@@ -53,24 +52,27 @@ start_modules() ->
     end.
 
 init_mnesia() ->
-    case mnesia:system_info(extra_db_nodes) of
-        [] ->
-            mnesia:create_schema([node()]);
+    ?INFO_MSG("Checking availability of cluster environment~n", []),
+    Nodes = case net_adm:host_file() of
+        {error, _} -> [];
         _ ->
-            ok
+            lists:filter(fun(N) -> N /= node() end, net_adm:world())
+    end,
+    case Nodes of
+        [] ->
+            ?INFO_MSG("No additional nodes were found~n", []),
+            mnesia:create_schema([node()]);
+        NodeList ->
+            ?INFO_MSG("Connected nodes: ~p~n", [NodeList]),
+            NodeList
     end,
     mnesia:start(),
+    case mnesia:change_config(extra_db_nodes, Nodes) of
+        {ok, _} -> ok;
+        {error, Reason} ->
+            exit(Reason)
+    end,
     mnesia:wait_for_tables(mnesia:system_info(local_tables), infinity).
-
-connect_nodes() ->
-    case netspire_config:get_option(nodes) of
-        Nodes when is_list(Nodes) andalso Nodes /= [] ->
-            lists:foreach(fun(Node) -> 
-                        net_kernel:connect_node(Node) end, Nodes),
-            ?INFO_MSG("Connected nodes: ~p~n", [nodes()]);
-        _ ->
-            ok
-    end.
 
 init_logging() ->
     case netspire_config:get_option(logging) of

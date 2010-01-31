@@ -18,7 +18,7 @@ start(_Options) ->
     netspire_hooks:add(radius_auth, ?MODULE, verify_mschap_v2).
 
 stop() ->
-    ?INFO_MSG("Stopping dynamic module ~p~n", [?MODULE]),
+    ?INFO_MSG("Stop dynamic module ~p~n", [?MODULE]),
     netspire_hooks:delete(radius_auth, ?MODULE, verify_mschap_v2).
 
 verify_mschap_v2(_, Request, UserName, Password, Replies, _Client) ->
@@ -117,18 +117,10 @@ latin1_to_unicode([], Ret) ->
 latin1_to_unicode([C | T], Acc) ->
     latin1_to_unicode(T, [0, C | Acc]).
 
-hex(N) when N < 10 ->
-    $0 + N;
-hex(N) when N >= 10, N < 16 ->
-    $A + (N - 10).
-
-to_hex(N) when N < 256 ->
-    [hex(N div 16), hex(N rem 16)].
-
 list_to_hex_string([]) ->
     [];
 list_to_hex_string([H | T]) ->
-    to_hex(H) ++ list_to_hex_string(T).
+    netspire_util:to_hex(H) ++ list_to_hex_string(T).
 
 binary_to_hex_string(Bin) ->
     list_to_hex_string(binary_to_list(Bin)).
