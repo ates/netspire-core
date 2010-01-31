@@ -1,17 +1,8 @@
-CC = @CC@
-CFLAGS = @CFLAGS@
-CPPFLAGS = @CPPFLAGS@
-LDFLAGS = @LDFLAGS@
-LIBS = @LIBS@
-
-ERLANG_CFLAGS = @ERLANG_CFLAGS@
-ERLANG_LIBS = @ERLANG_LIBS@
-
 SOURCES = $(wildcard *.erl)
 OUTDIR = ../ebin
 BEAMS = $(addprefix $(OUTDIR)/,$(SOURCES:.erl=.beam))
 
-EFLAGS = -I .. -pa $(OUTDIR)
+EFLAGS = -pa $(OUTDIR)
 
 all: $(BEAMS)
 

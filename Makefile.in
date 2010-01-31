@@ -1,6 +1,3 @@
-ERLANG_CFLAGS= @ERLANG_CFLAGS@
-ERLANG_LIBS = @ERLANG_LIBS@
-
 SUBDIRS = src/radius src src/crypto src/modules src/netflow c_src
 
 DESTDIR = @prefix@

@@ -1,7 +1,7 @@
 CC = @CC@
-OBJ_DIR=../priv/obj
-LIB_DIR=../priv/lib
-TARGET=$(shell uname)
+OBJ_DIR = ../priv/obj
+LIB_DIR = ../priv/lib
+TARGET = $(shell uname)
 
 ERLANG_CFLAGS = @ERLANG_CFLAGS@
 ERLANG_LIBS = @ERLANG_LIBS@
