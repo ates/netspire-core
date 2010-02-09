@@ -16,3 +16,4 @@
 -define(INTERIM_UPDATE, 3).
 -define(CHAP_PASSWORD, 3).
 -define(CHAP_CHALLENGE, 60).
+-define(NETSPIRE_FRAMED_POOL, {65535, 1}).
