@@ -87,10 +87,6 @@ override_global.
           %% on extra nodes in a cluster environment
           {allocate, true},
 
-          %% Always set Framed-IP-Address from default pool,
-          %% otherwise wait for Pool-Name reply attribute
-          {mandatory, true},
-
           %% Default pool name (only used if mandatory enabled)
           {default, main},
 
