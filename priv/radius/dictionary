@@ -26,6 +26,7 @@ $INCLUDE dictionary.rfc2869
 $INCLUDE dictionary.rfc3162
 $INCLUDE dictionary.microsoft
 $INCLUDE dictionary.mikrotik
+$INCLUDE dictionary.netspire
 #
 #	Following are the proper new names. Use these.
 #
