@@ -22,6 +22,7 @@
 start(Options) ->
     ?INFO_MSG("Starting dynamic module ~p~n", [?MODULE]),
     mnesia:create_table(ippool, [{disc_copies, [node()]},
+                                 {type, ordered_set},
                                  {record_name, ippool_entry},
                                  {attributes, record_info(fields, ippool_entry)}]),
     mnesia:add_table_copy(ippool, node(), disc_copies),
