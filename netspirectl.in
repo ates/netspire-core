@@ -9,9 +9,11 @@ NETSPIRE_CONFIG=%%NETSPIRE_CONFIG%%
 
 start()
 {
-    for dir in $NETSPIRE_DB $NETSPIRE_EBIN $NETSPIRE_CONFIG; do
-        [ -d $dir ] || echo "$dir does not exists" && exit 1
+    for dir in $NETSPIRE_DB $NETSPIRE_EBIN; do
+        [ ! -d $dir ] && echo "$dir does not exists" && exit 1
     done
+    [ ! -f $NETSPIRE_CONFIG ] &&
+        echo "Configuration file does not exists" && exit 1
     %%ERL%% \
     -noinput -detached \
     -sname $NODE \
