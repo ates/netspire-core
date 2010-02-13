@@ -40,6 +40,7 @@ install: all
 	install -m 644 *.conf.sample $(ETCDIR)
 	install -d -m 750 $(LOGDIR)
 	sed < netspirectl.in > netspirectl \
+		-e 's!%%ERL%%!@ERL@!g' \
 		-e 's!%%SPOOLDIR%%!$(SPOOLDIR)!g' \
 		-e 's!%%BEAMDIR%%!$(BEAMDIR)!g' \
 		-e 's!%%ERL%%!@ERL@!g' \
