@@ -28,8 +28,7 @@ verify_chap(_, Request, UserName, Password, Replies, _Client) ->
             Challenge =
                 case radius:attribute_value(?CHAP_CHALLENGE, Request) of
                 	undefined -> Request#radius_packet.auth; 
-                    Value ->
-                        Value
+                    ChapChallenge -> ChapChallenge
                 end,
             ChapPassword = list_to_binary(Value),
             do_chap(UserName, ChapPassword, Challenge, Password, Replies)

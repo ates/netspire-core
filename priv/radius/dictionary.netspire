@@ -1,0 +1,9 @@
+# -*- text -*-
+#
+#	The Netspire Vendor-Specific dictionary.
+#
+
+VENDOR		Netspire			65535
+
+ATTRIBUTE	Netspire-Framed-Pool		1	string  Netspire
+

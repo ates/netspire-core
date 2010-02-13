@@ -22,6 +22,7 @@
 start(Options) ->
     ?INFO_MSG("Starting dynamic module ~p~n", [?MODULE]),
     mnesia:create_table(ippool, [{disc_copies, [node()]},
+                                 {type, ordered_set},
                                  {record_name, ippool_entry},
                                  {attributes, record_info(fields, ippool_entry)}]),
     mnesia:add_table_copy(ippool, node(), disc_copies),
@@ -104,7 +105,12 @@ info() ->
 add_framed_ip(Response, _Request, _Extra, _Client) ->
     case radius:attribute_value(?FRAMED_IP_ADDRESS, Response) of
         undefined ->
-            Pool = gen_module:get_option(?MODULE, default, main),
+            Pool = case radius:attribute_value(?NETSPIRE_FRAMED_POOL, Response) of
+                undefined ->
+                    gen_module:get_option(?MODULE, default, main);
+                Value ->
+                    list_to_atom(Value)
+            end,
             case lease(Pool) of
                 {ok, IP} ->
                     ?INFO_MSG("Adding Framed-IP-Address ~p~n", [IP]),
