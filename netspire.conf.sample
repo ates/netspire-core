@@ -78,7 +78,7 @@ override_global.
       {mod_mschap_v2, []},
 
       % RPC service
-      {mod_rpc, {listen, {inet, "0.0.0.0", 9876}}},
+      {mod_rpc, [{listen, {inet, "0.0.0.0", 9876}}]},
 
       %% Pool of IP addresses
       {mod_ippool,
