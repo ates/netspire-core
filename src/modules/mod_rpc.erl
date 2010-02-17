@@ -64,7 +64,7 @@ process_rpc_request(Socket, {call, Mod, Fun, Args}) ->
     catch
         Type:Reason ->
             ?ERROR_MSG("RPC call ~p:~p with args ~p failed: ~p~n", [Mod, Fun, Args, {Type, Reason}]),
-            gen_tcp:send(Socket, term_to_binary(format_error_reply(Reason)))
+            gen_tcp:send(Socket, term_to_binary(format_error_reply(Mod, Fun)))
     after
         gen_tcp:close(Socket)
     end;
@@ -79,11 +79,16 @@ process_rpc_request(Socket, {cast, Mod, Fun, Args}) ->
             ?ERROR_MSG("RPC cast ~p:~p with args ~p failed: ~p~n", [Mod, Fun, Args, {Type, Reason}])
     end.
 
-format_error_reply(Reason) ->
-    % TODO: Send predefined error codes if no such module or function
-    Fun = fun(I) -> list_to_binary(io_lib:format("~p", [I])) end,
-    Backtrace = lists:map(Fun, erlang:get_stacktrace()),
-    {error, {server, 100, <<"BERTError">>, Reason, Backtrace}}.
+format_error_reply(Mod, Fun) ->
+    F = fun(I) -> list_to_binary(io_lib:format("~p", [I])) end,
+    Backtrace = lists:map(F, erlang:get_stacktrace()),
+    {Code, Reason} = case code:ensure_loaded(Mod) of
+        {module, Mod} ->
+            {1, list_to_binary(io_lib:format("function '~p' not found on module '~p'", [Fun, Mod]))};
+        {error, nofile} ->
+            {2, list_to_binary(io_lib:format("module '~p' does not exists", [Mod]))}
+    end,
+    {error, {server, Code, <<"BERTError">>, Reason, Backtrace}}.
 
 init([Options]) ->
     case process_listen_options(Options) of
