@@ -9,7 +9,6 @@
 -export([start/1, stop/0]).
 
 -include("../netspire.hrl").
--include("../netspire_radius.hrl").
 -include("../radius/radius.hrl").
 
 start(_Options) ->
@@ -22,11 +21,11 @@ stop() ->
     netspire_hooks:delete(radius_auth, ?MODULE, verify_mschap_v2).
 
 verify_mschap_v2(_, Request, UserName, Password, Replies, _Client) ->
-    case radius:attribute_value(?MS_CHAP_CHALLENGE, Request) of
+    case radius:attribute_value("MS-CHAP-Challenge", Request) of
         undefined ->
             Request;
         ChapChallenge ->
-            case radius:attribute_value(?MS_CHAP2_RESPONSE, Request) of
+            case radius:attribute_value("MS-CHAP2-Response", Request) of
                 undefined ->
                     Request;
                 Value ->
@@ -48,7 +47,7 @@ do_mschap_v2(UserName, ChapChallenge, ChapResponse, Password, Replies) ->
             Ident = mschap_v2_ident(ChapResponse),
             AuthResponse = mschap_v2_auth_response(PasswordHash, NTResponse, Challenge),
             Chap2Success = [Ident] ++ AuthResponse,
-            Attrs = [{?MS_CHAP2_SUCCESS, Chap2Success}],
+            Attrs = [{"MS-CHAP2-Success", Chap2Success}],
             ?INFO_MSG("MS-CHAP-V2 authentication succeeded: ~p~n", [UserName]),
             {stop, {accept, Replies ++ Attrs}};
         _ ->

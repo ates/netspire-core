@@ -9,7 +9,6 @@
 -export([start/1, stop/0]).
 
 -include("../netspire.hrl").
--include("../netspire_radius.hrl").
 -include("../radius/radius.hrl").
 
 start(_Options) ->
@@ -21,7 +20,7 @@ stop() ->
     netspire_hooks:delete(radius_auth, ?MODULE, verify_pap).
 
 verify_pap(_, Request, UserName, Password, Replies, Client) ->
-    case radius:attribute_value(?USER_PASSWORD, Request) of
+    case radius:attribute_value("Password", Request) of
         undefined ->
             Request;
         UserPassword ->

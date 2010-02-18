@@ -12,7 +12,6 @@
 -export([start/1, stop/0]).
 
 -include("../netspire.hrl").
--include("../netspire_radius.hrl").
 -include("../radius/radius.hrl").
 
 -record(ippool_entry, {ip, pool, expires_at = 0}).
@@ -103,9 +102,9 @@ info() ->
     lists:map(F, mnesia:dirty_all_keys(ippool)).
 
 add_framed_ip(Response, _Request, _Extra, _Client) ->
-    case radius:attribute_value(?FRAMED_IP_ADDRESS, Response) of
+    case radius:attribute_value("Framed-IP-Address", Response) of
         undefined ->
-            Pool = case radius:attribute_value(?NETSPIRE_FRAMED_POOL, Response) of
+            Pool = case radius:attribute_value("Netspire-Framed-Pool", Response) of
                 undefined ->
                     gen_module:get_option(?MODULE, default, main);
                 Value ->
@@ -115,7 +114,7 @@ add_framed_ip(Response, _Request, _Extra, _Client) ->
                 {ok, IP} ->
                     ?INFO_MSG("Adding Framed-IP-Address ~p~n", [IP]),
                     Attrs = Response#radius_packet.attrs,
-                    Response#radius_packet{attrs = [{?FRAMED_IP_ADDRESS, IP} | Attrs]};
+                    Response#radius_packet{attrs = [{"Framed-IP-Address", IP} | Attrs]};
                 {error, empty} ->
                     ?WARNING_MSG("No more free ip addresses~n", []),
                     {stop, {reject, []}};
@@ -127,7 +126,7 @@ add_framed_ip(Response, _Request, _Extra, _Client) ->
     end.
 
 renew_framed_ip(Response, ?INTERIM_UPDATE, Request, _) ->
-    IP = radius:attribute_value(?FRAMED_IP_ADDRESS, Request),
+    IP = radius:attribute_value("Framed-IP-Address", Request),
     case renew(IP) of
         {ok, _} ->
             ?INFO_MSG("Framed-IP-Address ~p is renewed~n", [IP]);

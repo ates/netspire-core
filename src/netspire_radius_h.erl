@@ -10,11 +10,10 @@
 -export([process_request/3]).
 
 -include("netspire.hrl").
--include("netspire_radius.hrl").
 -include("radius/radius.hrl").
 
 process_request('Access-Request', Request, Client) ->
-    case radius:attribute_value(?USER_NAME, Request) of
+    case radius:attribute_value("User-Name", Request) of
         undefined ->
             ?WARNING_MSG("Missing required attribute User-Name, "
                          "replying Access-Reject~n", []),
@@ -23,7 +22,7 @@ process_request('Access-Request', Request, Client) ->
             do_auth([Request, UserName, Client])
     end;
 process_request('Accounting-Request', Request, Client) ->
-    case radius:attribute_value(?ACCT_STATUS_TYPE, Request) of
+    case radius:attribute_value("Acct-Status-Type", Request) of
         undefined ->
             ?WARNING_MSG("Missing required attribute Acct-Status-Type, "
                          "discarding request~n", []),

@@ -3,6 +3,15 @@
 %%% Purpose : Describes packet format of the RADIUS protocol (RFC 2865)
 %%%----------------------------------------------------------------------
 
+-define(ACCESS_ACCEPT, 2).
+-define(ACCESS_REJECT, 3).
+-define(ACCT_RESPONSE, 5).
+
+%% The Acct-Status-Type attribute values
+-define(ACCT_START, 1).
+-define(ACCT_STOP, 2).
+-define(INTERIM_UPDATE, 3).
+
 %%---------------------------------------------------------------------
 %% Data Type: radius_packet
 %% where:
