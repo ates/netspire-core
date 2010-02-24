@@ -1,8 +1,7 @@
 -module(netspire_crypto).
 
 -export([start/0, stop/0, info/0, info_lib/0]).
--export([md4/1, md4_init/0, md4_update/2, md4_final/1]).
--export([des_ecb_encrypt/2, des_ecb_decrypt/2, des_set_parity/1]).
+-export([md4/1, md4_init/0, md4_update/2, md4_final/1, des_ecb_encrypt/2, des_ecb_decrypt/2]).
 
 -define(INFO, 0).
 -define(MD4, 1).
@@ -11,8 +10,7 @@
 -define(MD4_FINAL, 4).
 -define(DES_ECB_ENCRYPT, 5).
 -define(DES_ECB_DECRYPT, 6).
--define(DES_SET_PARITY, 7).
--define(INFO_LIB, 8).
+-define(INFO_LIB, 7).
 
 -define(FUNC_LIST, [md4,
                     md4_init,
@@ -20,7 +18,6 @@
                     md4_final,
                     des_ecb_encrypt,
                     des_ecb_decrypt,
-                    des_set_parity,
                     info_lib]).
 
 start() ->
@@ -49,9 +46,6 @@ md4_update(Context, Data) ->
 
 md4_final(Context) ->
     control(?MD4_FINAL, Context).
-
-des_set_parity(Data) ->
-    control(?DES_SET_PARITY, Data).
 
 des_ecb_encrypt(Key, Data) ->
     control(?DES_ECB_ENCRYPT, [Key, Data]).

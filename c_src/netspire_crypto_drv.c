@@ -103,10 +103,9 @@ static ErlDrvEntry crypto_driver_entry = {
 #define DRV_MD4_FINAL           4
 #define DRV_ECB_DES_ENCRYPT     5
 #define DRV_ECB_DES_DECRYPT     6
-#define DRV_DES_SET_PARITY      7
-#define DRV_INFO_LIB            8
+#define DRV_INFO_LIB            7
 
-#define NUM_CRYPTO_FUNCS        9
+#define NUM_CRYPTO_FUNCS        8
 
 #define MD4_CTX_LEN             (sizeof(MD4_CTX))
 #define MD4_LEN                 16
@@ -179,20 +178,6 @@ static void stop(ErlDrvData drv_data) {
     return;
 }
 
-void des_set_parity(char *input, char *output) {
-    int i;
-    unsigned char next = 0;
-    unsigned char current = 0;
-
-    for (i = 0; i < 7; i++) {
-        current = input[i];
-        output[i] = (current >> i) | next | 1;
-        current = input[i];
-        next = (current << (7 - i));
-    }
-    output[i] = next | 1;
-}
-
 /* Since we are operating in binary mode, the return value from control
  * is irrelevant, as long as it is not negative
  */
@@ -242,15 +227,6 @@ static int control(ErlDrvData drv_data, unsigned int command, char *buf,
             *rbuf = (char *) (bin = driver_alloc_binary(MD4_LEN));
             MD4_Final((unsigned char *)bin->orig_bytes, &md4_ctx);
             return MD4_LEN;
-            break;
-
-        case DRV_DES_SET_PARITY:
-            /* buf = 7 octets data */
-            if (len != 7)
-                return -1;
-            *rbuf = (char *) (bin = driver_alloc_binary(8));
-            des_set_parity(buf, bin->orig_bytes);
-            return 8;
             break;
 
         case DRV_ECB_DES_ENCRYPT:

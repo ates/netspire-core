@@ -61,7 +61,7 @@ mschap_v2_challenge_response(Challenge, PasswordHash) ->
     concat_binary(Cyphers).
 
 split_password_hash(<<A:7/binary-unit:8, B:7/binary-unit:8, C:7/binary-unit:8>>) ->
-    lists:map(fun netspire_crypto:des_set_parity/1, [A, B, C]).
+    lists:map(fun set_parity/1, [A, B, C]).
 
 mschap_v2_challenge_hash(PeerChallenge, AuthChallenge, UserName) ->
     ShaContext = crypto:sha_init(),
@@ -108,6 +108,16 @@ mschap_v2_magic2() ->
       16#72, 16#65, 16#20, 16#74, 16#68, 16#61, 16#6E, 16#20, 16#6F, 16#6E,
       16#65, 16#20, 16#69, 16#74, 16#65, 16#72, 16#61, 16#74, 16#69, 16#6F,
       16#6E>>.
+
+set_parity(Bin) ->
+  set_parity(Bin, 0, 0, <<>>).
+
+set_parity(<<>>, _, Next, Output) ->
+  Result = Next bor 1,
+  <<Output/binary, Result>>;
+set_parity(<<Current:8, Rest/binary>>, I, Next, Output) ->
+  Result = (Current bsr I) bor Next bor 1,
+  set_parity(Rest, I + 1, Current bsl (7 - I), <<Output/binary, Result>>).
 
 latin1_to_unicode(S) ->
     latin1_to_unicode(S, []).
