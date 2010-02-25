@@ -36,7 +36,7 @@ verify_mschap_v2(_, Request, UserName, Password, Replies, _Client) ->
 
 do_mschap_v2(UserName, ChapChallenge, ChapResponse, Password, Replies) ->
     Password1 = latin1_to_unicode(Password),
-    PasswordHash = netspire_crypto:md4(Password1),
+    PasswordHash = crypto:md4(Password1),
     NTResponse = mschap_v2_nt_response(ChapResponse),
     PeerChallenge = mschap_v2_peer_challenge(ChapResponse),
     Challenge = mschap_v2_challenge_hash(PeerChallenge, ChapChallenge, UserName),
@@ -73,7 +73,7 @@ mschap_v2_challenge_hash(PeerChallenge, AuthChallenge, UserName) ->
     Challenge.
 
 mschap_v2_auth_response(PasswordHash, NTResponse, Challenge) ->
-    PasswordHashHash = netspire_crypto:md4(PasswordHash),
+    PasswordHashHash = crypto:md4(PasswordHash),
     ShaContext = crypto:sha_init(),
     ShaContext1 = crypto:sha_update(ShaContext, PasswordHashHash),
     ShaContext2 = crypto:sha_update(ShaContext1, NTResponse),

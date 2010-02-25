@@ -15,8 +15,8 @@ init([]) ->
         case code:priv_dir(netspire) of
             {error, bad_name} ->
 	            "./priv";
-            D ->
-                D
+            Dir ->
+                Dir
         end,
 
     LibDir = filename:join([PrivDir, "lib"]),

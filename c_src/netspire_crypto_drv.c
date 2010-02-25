@@ -16,7 +16,6 @@
 #endif
 
 #include <openssl/des.h>
-#include <openssl/md4.h>
 
 #ifdef DEBUG
 #define ASSERT(e) \
@@ -97,18 +96,11 @@ static ErlDrvEntry crypto_driver_entry = {
  * in netspire_crypto.erl
  */
 #define DRV_INFO                0
-#define DRV_MD4                 1
-#define DRV_MD4_INIT            2
-#define DRV_MD4_UPDATE          3
-#define DRV_MD4_FINAL           4
-#define DRV_ECB_DES_ENCRYPT     5
-#define DRV_ECB_DES_DECRYPT     6
-#define DRV_INFO_LIB            7
+#define DRV_ECB_DES_ENCRYPT     1
+#define DRV_ECB_DES_DECRYPT     2
+#define DRV_INFO_LIB            3
 
-#define NUM_CRYPTO_FUNCS        8
-
-#define MD4_CTX_LEN             (sizeof(MD4_CTX))
-#define MD4_LEN                 16
+#define NUM_CRYPTO_FUNCS        3
 
 /* INITIALIZATION AFTER LOADING */
 
@@ -184,7 +176,6 @@ static void stop(ErlDrvData drv_data) {
 static int control(ErlDrvData drv_data, unsigned int command, char *buf,
         int len, char **rbuf, int rlen) {
     ErlDrvBinary *bin;
-    MD4_CTX md4_ctx;
     char *p;
     const unsigned char *des_dbuf;
     const_DES_cblock *des_key;
@@ -198,36 +189,6 @@ static int control(ErlDrvData drv_data, unsigned int command, char *buf,
                 bin->orig_bytes[i] = i + 1;
             }
             return NUM_CRYPTO_FUNCS;
-
-        case DRV_MD4:
-            *rbuf = (char*) (bin = driver_alloc_binary(MD4_LEN));
-            MD4((unsigned char *)buf, len, (unsigned char *)bin->orig_bytes);
-            return MD4_LEN;
-            break;
-
-        case DRV_MD4_INIT:
-            *rbuf = (char*) (bin = driver_alloc_binary(MD4_CTX_LEN));
-            MD4_Init((MD4_CTX *) bin->orig_bytes);
-            return MD4_CTX_LEN;
-            break;
-
-        case DRV_MD4_UPDATE:
-            if (len < MD4_CTX_LEN)
-                return -1;
-            *rbuf = (char*) (bin = driver_alloc_binary(MD4_CTX_LEN));
-            memcpy(bin->orig_bytes, buf, MD4_CTX_LEN);
-            MD4_Update((MD4_CTX *) bin->orig_bytes, buf + MD4_CTX_LEN, len - MD4_CTX_LEN);
-            return MD4_CTX_LEN;
-            break;
-
-        case DRV_MD4_FINAL:
-            if (len != MD4_CTX_LEN)
-                return -1;
-            memcpy(&md4_ctx, buf, MD4_CTX_LEN); /* XXX Use buf only? */
-            *rbuf = (char *) (bin = driver_alloc_binary(MD4_LEN));
-            MD4_Final((unsigned char *)bin->orig_bytes, &md4_ctx);
-            return MD4_LEN;
-            break;
 
         case DRV_ECB_DES_ENCRYPT:
         case DRV_ECB_DES_DECRYPT:
