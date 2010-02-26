@@ -101,6 +101,8 @@ info() ->
     F = fun(Key) -> mnesia:dirty_read({ippool, Key}) end,
     lists:map(F, mnesia:dirty_all_keys(ippool)).
 
+add_framed_ip({reject, _} = Response, _, _, _) ->
+    Response;
 add_framed_ip(Response, _Request, _Extra, _Client) ->
     case radius:attribute_value("Framed-IP-Address", Response) of
         undefined ->
