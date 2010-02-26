@@ -1,5 +1,5 @@
 /* This driver implementation is derived from Erlang crypto_drv.c code.
- * Driver adds missed crypto functions (MD4, DES in ECB mode).
+ * Driver adds missed crypto function (DES in ECB mode).
  */
 
 #include <stdlib.h>
@@ -30,11 +30,6 @@
 #else
 #define INLINE
 #endif
-
-#define get_int32(s) ((((unsigned char*) (s))[0] << 24) |\
-                      (((unsigned char*) (s))[1] << 16) |\
-                      (((unsigned char*) (s))[2] << 8)  |\
-                      (((unsigned char*) (s))[3]))
 
 #define put_int32(s, i)\
 { (s)[0] = (char)(((i) >> 24) & 0xff);\
