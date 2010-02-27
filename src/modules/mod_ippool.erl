@@ -144,6 +144,5 @@ renew_framed_ip(Response, _, _, _) ->
 
 stop() ->
     ?INFO_MSG("Stop dynamic module ~p~n", [?MODULE]),
-    netspire_hooks:delete(radius_auth_response, ?MODULE, add_framed_ip),
-    netspire_hooks:delete(radius_acct_request, ?MODULE, free_framed_ip).
+    netspire_hooks:delete_all(?MODULE).
 
