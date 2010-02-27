@@ -83,11 +83,10 @@ override_global.
       %% Pool of IP addresses
       {mod_ippool,
         [
-          %% Set this option to false when running
-          %% on extra nodes in a cluster environment
+          %% Reset pool on every application start
           {allocate, true},
 
-          %% Default pool name (only used if mandatory enabled)
+          %% Default pool name (used if Netspire-Framed-Pool RADIUS reply is missing)
           {default, main},
 
           %% IP expiration time, depends on session timeout
