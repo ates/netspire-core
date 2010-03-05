@@ -47,16 +47,9 @@ pap_encrypt_password(<<>>, _Secret, _Auth, Ret) ->
     binary_to_list(Ret);
 
 pap_encrypt_password(<<P:16/binary, Rest/binary>>, Secret, Auth, Ret) ->
-    PX = do_bxor(P, erlang:md5([Secret, Auth])),
+    PX = netspire_util:do_bxor(P, erlang:md5([Secret, Auth])),
     pap_encrypt_password(Rest, Secret, PX, concat_binary([Ret, PX]));
 pap_encrypt_password(P, Secret, Auth, Ret) ->
-    PX = do_bxor(P, erlang:md5([Secret, Auth])),
+    PX = netspire_util:do_bxor(P, erlang:md5([Secret, Auth])),
     binary_to_list(concat_binary([Ret, PX])).
-
-do_bxor(B1, B2) ->
-    do_bxor(B1, B2, <<>>).
-do_bxor(<<>>, B2, Ret) ->
-    concat_binary([Ret, B2]);
-do_bxor(<<I1, Rest1/binary>>, <<I2, Rest2/binary>>, Acc) ->
-    do_bxor(Rest1, Rest2, concat_binary([Acc, I1 bxor I2])).
 
