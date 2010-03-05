@@ -32,9 +32,9 @@ to_hex(N) when N < 256 ->
 do_bxor(B1, B2) ->
     do_bxor(B1, B2, <<>>).
 do_bxor(<<>>, B2, Ret) ->
-    concat_binary([Ret, B2]);
+    list_to_binary([Ret, B2]);
 do_bxor(<<I1, Rest1/binary>>, <<I2, Rest2/binary>>, Acc) ->
-    do_bxor(Rest1, Rest2, concat_binary([Acc, I1 bxor I2])).
+    do_bxor(Rest1, Rest2, list_to_binary([Acc, I1 bxor I2])).
 
 %% Internal functions
 hex(N) when N < 10 ->

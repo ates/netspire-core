@@ -122,7 +122,7 @@ encode_attributes(undefined, <<>>) ->
 encode_attributes([], Bin) ->
     Bin;
 encode_attributes([A | Attrs], Bin) ->
-    encode_attributes(Attrs, concat_binary([Bin, encode_attribute(A)])).
+    encode_attributes(Attrs, list_to_binary([Bin, encode_attribute(A)])).
 
 encode_attribute({Code, Value}) ->
     case radius_dict:lookup_attribute(Code) of

@@ -48,8 +48,8 @@ pap_encrypt_password(<<>>, _Secret, _Auth, Ret) ->
 
 pap_encrypt_password(<<P:16/binary, Rest/binary>>, Secret, Auth, Ret) ->
     PX = netspire_util:do_bxor(P, erlang:md5([Secret, Auth])),
-    pap_encrypt_password(Rest, Secret, PX, concat_binary([Ret, PX]));
+    pap_encrypt_password(Rest, Secret, PX, list_to_binary([Ret, PX]));
 pap_encrypt_password(P, Secret, Auth, Ret) ->
     PX = netspire_util:do_bxor(P, erlang:md5([Secret, Auth])),
-    binary_to_list(concat_binary([Ret, PX])).
+    binary_to_list(list_to_binary([Ret, PX])).
 
