@@ -20,7 +20,7 @@ stop() ->
     ?INFO_MSG("Stop dynamic module ~p~n", [?MODULE]),
     netspire_hooks:delete(radius_auth, ?MODULE, verify_mschap_v2).
 
-verify_mschap_v2(_, Request, UserName, Password, Replies, _Client) ->
+verify_mschap_v2(_, Request, UserName, Password, Replies, Client) ->
     case radius:attribute_value("MS-CHAP-Challenge", Request) of
         undefined ->
             Request;
@@ -29,12 +29,14 @@ verify_mschap_v2(_, Request, UserName, Password, Replies, _Client) ->
                 undefined ->
                     Request;
                 Value ->
+                    Auth = Request#radius_packet.auth,
+                    Secret = Client#nas_spec.secret,
                     ChapResponse = list_to_binary(Value),
-                    do_mschap_v2(UserName, ChapChallenge, ChapResponse, Password, Replies)
+                    do_mschap_v2(UserName, ChapChallenge, ChapResponse, Password, Replies, Auth, Secret)
             end
     end.
 
-do_mschap_v2(UserName, ChapChallenge, ChapResponse, Password, Replies) ->
+do_mschap_v2(UserName, ChapChallenge, ChapResponse, Password, Replies, Auth, Secret) ->
     Password1 = latin1_to_unicode(Password),
     PasswordHash = crypto:md4(Password1),
     NTResponse = mschap_v2_nt_response(ChapResponse),
@@ -49,7 +51,13 @@ do_mschap_v2(UserName, ChapChallenge, ChapResponse, Password, Replies) ->
             Chap2Success = [Ident] ++ AuthResponse,
             Attrs = [{"MS-CHAP2-Success", Chap2Success}],
             ?INFO_MSG("MS-CHAP-V2 authentication succeeded: ~p~n", [UserName]),
-            {stop, {accept, Replies ++ Attrs}};
+            case gen_module:get_option(?MODULE, use_mppe) of
+                yes ->
+                    MPPE = mschap_v2_mppe:generate_mppe_attrs(NTResponse, PasswordHash, Auth, Secret),
+                    {stop, {accept, Replies ++ Attrs ++ MPPE}};
+                _ ->
+                    {stop, {accept, Replies ++ Attrs}}
+            end;
         _ ->
             ?INFO_MSG("MS-CHAP-V2 authentication failed: ~p~n", [UserName]),
             {stop, {reject, []}}

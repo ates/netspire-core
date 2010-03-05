@@ -75,7 +75,9 @@ override_global.
       {mod_chap, []},
 
       %% RADIUS MS-CHAP-V2 auth type
-      {mod_mschap_v2, []},
+      {mod_mschap_v2, [
+        {use_mppe, no}, {require_encryption, yes}, {require_strong, yes}
+      ]},
 
       % RPC service
       {mod_rpc, [{listen, {inet, "0.0.0.0", 9876}}]},
