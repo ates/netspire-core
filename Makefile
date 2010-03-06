@@ -2,7 +2,7 @@ APP_NAME=netspire
 MNESIA_FLAGS=-mnesia dir \"/tmp/netspire\"
 CONFIG_FLAGS=-netspire config \"netspire.conf\"
 SNODE_NAME=netspire
-EFLAGS=-pa ebin $(CONFIG_FLAGS) $(MNESIA_FLAGS) -sname $(SNODE_NAME)
+EFLAGS=+W w -pa ebin $(CONFIG_FLAGS) $(MNESIA_FLAGS) -sname $(SNODE_NAME)
 VSN=$(shell awk -F\" '/vsn/ { print $$2 }\' netspire.app)
 
 ifeq ($(shell which rlwrap 2>/dev/null),)
