@@ -1,37 +1,63 @@
 #!/bin/sh
 
 NODE=netspire
+HOST=$(hostname -f)
 
 ERL=%%ERL%%
+# Starts the Erlang runtime system with SMP support (enable|auto|disable)
+SMP=auto
+# Path to store internal application state
 NETSPIRE_DB=%%SPOOLDIR%%
+# Path to "ebin" directory of your Netspire installation
 NETSPIRE_EBIN=%%BEAMDIR%%
+# Path to netspire.conf file
 NETSPIRE_CONFIG=%%NETSPIRE_CONFIG%%
 
-start()
-{
+start() {
+    echo "Starting Netspire"
     for dir in $NETSPIRE_DB $NETSPIRE_EBIN; do
         [ ! -d $dir ] && echo "$dir does not exists" && exit 1
     done
     [ ! -f $NETSPIRE_CONFIG ] &&
         echo "Configuration file does not exists" && exit 1
     %%ERL%% \
-    -noinput -detached \
-    -sname $NODE \
-    -pa $NETSPIRE_EBIN \
-    -mnesia dir "\"$NETSPIRE_DB\"" \
-    -netspire config \"$NETSPIRE_CONFIG\" \
-    -eval 'application:start(netspire).'
+        -noinput -detached \
+        -smp $SMP \
+        -name $NODE@$HOST \
+        -pa $NETSPIRE_EBIN \
+        -mnesia dir "\"$NETSPIRE_DB\"" \
+        -netspire config \"$NETSPIRE_CONFIG\" \
+        -eval 'application:start(netspire).'
+}
+
+stop() {
+    echo "Stopping Netspire"
+    %%ERL%% -name nsctl@$HOST \
+        -eval "rpc:call('$NODE@$HOST', init, stop, [], 5000)" \
+        -s erlang halt \
+        -noshell \
+        -noinput \
+        -nohidden
+}
+
+shell() {
+    $ERL -name netspire-remote -hidden -remsh $NODE@$HOST
 }
 
 usage()
 {
-    echo "usage: $0 start"
-    exit 0
+    echo "usage: $0 {start|stop|shell}"
+    exit 1
 }
 
 [ $# -lt 1 ] && usage
 
 case $1 in
-    start) start;;
+    start)
+        start;;
+    stop)
+        stop;;
+    shell)
+        shell;;
     *) usage;;
 esac
