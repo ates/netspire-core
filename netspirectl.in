@@ -20,7 +20,7 @@ start() {
     done
     [ ! -f $NETSPIRE_CONFIG ] &&
         echo "Configuration file does not exists" && exit 1
-    %%ERL%% \
+    %%ERL%% +W w \
         -noinput -detached \
         -smp $SMP \
         -name $NODE@$HOST \
