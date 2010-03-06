@@ -5,6 +5,7 @@
 -module(radius).
 
 -include("radius.hrl").
+-include("../netspire.hrl").
 
 -export([decode_packet/1,
          encode_response/3,
@@ -155,8 +156,14 @@ typecast_value(Value, integer) ->
 typecast_value(Value, octets) when is_list(Value) ->
     list_to_binary(Value);
 typecast_value(IP, ipaddr) when is_list(IP) ->
-    {ok, {A, B, C, D}} = inet_parse:address(IP),
-    <<A:8, B:8, C:8, D:8>>;
+    case inet_parse:ipv4_address(IP) of
+        {ok, {A, B, C, D}} ->
+            <<A:8, B:8, C:8, D:8>>;
+        {error, Reason} ->
+            ?WARNING_MSG("An error was caused during typecasting"
+                         " attribute value: ~p: ~p~n", [IP, Reason]),
+            <<0:8, 0:8, 0:8, 0:8>>
+    end;
 typecast_value({A, B, C, D}, ipaddr) ->
     <<A:8, B:8, C:8, D:8>>.
 
