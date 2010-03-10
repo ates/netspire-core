@@ -13,55 +13,52 @@
          identify_packet/1,
          attribute_value/2]).
 
-decode_packet(Packet) ->
+decode_packet(Bin) ->
     try
-        <<?RADIUS_PACKET>> = Packet,
+        <<?RADIUS_PACKET>> = Bin,
         case byte_size(Attrs) >= (Length - 20) of
             true ->
                 A = decode_attributes(Attrs, []),
-                {ok, #radius_packet{code = Code, ident = Ident, auth = Auth, attrs = A}};
+                Packet = #radius_packet{code = Code, ident = Ident, auth = Auth, attrs = A},
+                {ok, Packet};
             false ->
-                invalid
+                {error, invalid}
         end
     catch
         _:_ ->
-            invalid
+            {error, invalid}
     end.
 
 decode_attributes(<<>>, Attrs) ->
     lists:reverse(Attrs);
 decode_attributes(Bin, Attrs) ->
-    case decode_attribute(Bin) of
-        {unknown, Rest} ->
-            decode_attributes(Rest, Attrs);
-        {ok, Type, Value, Rest} ->
-            decode_attributes(Rest, [{Type, Value} | Attrs])
-     end.
+    {ok, Type, Value, Rest} = decode_attribute(Bin),
+    decode_attributes(Rest, [{Type, Value} | Attrs]).
 
 decode_attribute(<<?ATTRIBUTE>>) ->
-    L = (Length - 2),
-    case radius_dict:lookup_attribute(Type) of
-        not_found ->
-            {_Value, Rest1} = decode_value(Rest, L),
-            {unknown, Rest1};
-        A ->
-            case Type of
-                ?VENDOR_SPECIFIC ->
-                    decode_vendor_attribute(Rest);
-                _ ->
-                    {Value, Rest1} = decode_value(Rest, L, A#attribute.type),
+    case Type of
+        ?VENDOR_SPECIFIC ->
+            decode_vendor_attribute(Rest);
+        _ ->
+            case radius_dict:lookup_attribute(Type) of
+                not_found ->
+                    ?WARNING_MSG("Unable to lookup attribute ~p in dictionary~n", [Type]),
+                    {Value, Rest1} = decode_value(Rest, Length - 2),
+                    {ok, Type, Value, Rest1};
+                A ->
+                    {Value, Rest1} = decode_value(Rest, Length - 2, A#attribute.type),
                     {ok, Type, Value, Rest1}
             end
     end.
 
 decode_vendor_attribute(<<?VENDOR_ATTRIBUTE>>) ->
-    L = (Length - 2),
     case radius_dict:lookup_attribute({Id, Type}) of
         not_found ->
-            {_Value, Rest1} = decode_value(Rest, L),
-            {unknown, Rest1};
+            ?WARNING_MSG("Unable to lookup vendor specific attribute ~p in dictionary~n", [{Id, Type}]),
+            {Value, Rest1} = decode_value(Rest, Length - 2),
+            {ok, {Id, Type}, Value, Rest1};
         A ->
-            {Value, Rest1} = decode_value(Rest, L, A#attribute.type),
+            {Value, Rest1} = decode_value(Rest, Length - 2, A#attribute.type),
             {ok, {Id, Type}, Value, Rest1}
     end.
 
@@ -72,14 +69,14 @@ decode_value(Bin, Length, integer) ->
     <<Value:Length/integer-unit:8, Rest/binary>> = Bin,
     {Value, Rest};
 decode_value(Bin, Length, ipaddr) ->
-    <<Value : Length/binary, Rest/binary>> = Bin,
+    <<Value:Length/binary, Rest/binary>> = Bin,
     IP = binary_to_list(Value),
     {list_to_tuple(IP), Rest};
 decode_value(Bin, Length, _Type) ->
     decode_value(Bin, Length).
 
 decode_value(Bin, Length) ->
-    <<Value : Length/binary, Rest/binary>> = Bin,
+    <<Value:Length/binary, Rest/binary>> = Bin,
     {Value, Rest}.
 
 attribute_value(Code, Packet) when is_record(Packet, radius_packet) ->
@@ -110,25 +107,37 @@ encode_response(Request, Response, Secret) ->
     Code = <<C:8>>,
     Ident = Request#radius_packet.ident,
     ReqAuth = Request#radius_packet.auth,
-    Attrs = encode_attributes(A, <<>>),
-    Length = <<(20 + byte_size(Attrs)):16>>,
-    Auth = erlang:md5([Code, Ident, Length, ReqAuth, Attrs, Secret]),
-    [Code, Ident, Length, Auth, Attrs].
+    case encode_attributes(A) of
+        {ok, Attrs} ->
+            Length = <<(20 + byte_size(Attrs)):16>>,
+            Auth = erlang:md5([Code, Ident, Length, ReqAuth, Attrs, Secret]),
+            Data = list_to_binary([Code, Ident, Length, Auth, Attrs]),
+            {ok, Data};
+        _ ->
+            {error, invalid}
+    end.
 
 encode_attributes(Attrs) ->
-    encode_attributes(Attrs, <<>>).
+    try
+        Bin = encode_attributes(Attrs, []),
+        {ok, Bin}
+    catch
+        _:_ ->
+            {error, invalid}
+    end.
 
-encode_attributes(undefined, <<>>) ->
+encode_attributes(undefined, []) ->
     <<>>;
 encode_attributes([], Bin) ->
-    Bin;
+    list_to_binary(lists:reverse(Bin));
 encode_attributes([A | Attrs], Bin) ->
-    encode_attributes(Attrs, list_to_binary([Bin, encode_attribute(A)])).
+    encode_attributes(Attrs, [encode_attribute(A) | Bin]).
 
 encode_attribute({Code, Value}) ->
     case radius_dict:lookup_attribute(Code) of
         not_found ->
-            <<>>;
+            ?WARNING_MSG("Unable to lookup attribute ~p in dictionary~n", [Code]),
+            throw({error, not_found});
         #attribute{code = Code1, type = Type} ->
             encode_attribute(Code1, Type, Value)
     end.
@@ -146,26 +155,34 @@ encode_attribute(Code, Type, Value) ->
 
 typecast_value(Value, _Type) when is_binary(Value) ->
     Value;
-typecast_value(Value, string) ->
-    list_to_binary(Value);
-typecast_value(Value, integer) when is_list(Value) ->
-    Value1 = list_to_integer(Value),
-    <<Value1:32>>;
-typecast_value(Value, integer) ->
-    <<Value:32>>;
 typecast_value(Value, octets) when is_list(Value) ->
     list_to_binary(Value);
+typecast_value(Value, string) when is_list(Value) ->
+    list_to_binary(Value);
+typecast_value(Value, integer) when is_list(Value) ->
+    try
+        IntValue = list_to_integer(Value),
+        <<IntValue:32>>
+    catch
+        _:_ ->
+            ?WARNING_MSG("Unable to cast attribute value ~p to integer~n", [Value]),
+            throw({error, typecast})
+    end;
+typecast_value(Value, integer) when is_integer(Value) ->
+    <<Value:32>>;
 typecast_value(IP, ipaddr) when is_list(IP) ->
     case inet_parse:ipv4_address(IP) of
         {ok, {A, B, C, D}} ->
             <<A:8, B:8, C:8, D:8>>;
-        {error, Reason} ->
-            ?WARNING_MSG("An error was caused during typecasting"
-                         " attribute value: ~p: ~p~n", [IP, Reason]),
-            <<0:8, 0:8, 0:8, 0:8>>
+        _ ->
+            ?WARNING_MSG("Unable to cast attribute value ~p to ipaddr~n", [IP]),
+            throw({error, typecast})
     end;
 typecast_value({A, B, C, D}, ipaddr) ->
-    <<A:8, B:8, C:8, D:8>>.
+    <<A:8, B:8, C:8, D:8>>;
+typecast_value(Value, Type) ->
+    ?WARNING_MSG("Unable to cast attribute value ~p to ~p~n", [Value, Type]),
+    throw({error, typecast}).
 
 identify_packet(1) ->
     {ok, 'Access-Request'};
