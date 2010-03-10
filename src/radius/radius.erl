@@ -143,46 +143,46 @@ encode_attribute({Code, Value}) ->
     end.
 
 encode_attribute({Id, Code}, Type, Value) ->
-    Bin = typecast_value(Value, Type),
+    Bin = encode_value(Value, Type),
     Size = byte_size(Bin),
     VLength = 8 + Size,
     ALength = 2 + Size,
     <<?VENDOR_SPECIFIC:8, VLength:8, Id:32, Code:8, ALength:8, Bin/binary>>;
 encode_attribute(Code, Type, Value) ->
-    Bin = typecast_value(Value, Type),
+    Bin = encode_value(Value, Type),
     Length = 2 + byte_size(Bin),
     <<Code:8, Length:8, Bin/binary>>.
 
-typecast_value(Value, _Type) when is_binary(Value) ->
+encode_value(Value, _Type) when is_binary(Value) ->
     Value;
-typecast_value(Value, octets) when is_list(Value) ->
+encode_value(Value, octets) when is_list(Value) ->
     list_to_binary(Value);
-typecast_value(Value, string) when is_list(Value) ->
+encode_value(Value, string) when is_list(Value) ->
     list_to_binary(Value);
-typecast_value(Value, integer) when is_list(Value) ->
+encode_value(Value, integer) when is_list(Value) ->
     try
         IntValue = list_to_integer(Value),
         <<IntValue:32>>
     catch
         _:_ ->
-            ?WARNING_MSG("Unable to cast attribute value ~p to integer~n", [Value]),
-            throw({error, typecast})
+            ?WARNING_MSG("Unable to encode attribute value ~p as integer~n", [Value]),
+            throw({error, encode})
     end;
-typecast_value(Value, integer) when is_integer(Value) ->
+encode_value(Value, integer) when is_integer(Value) ->
     <<Value:32>>;
-typecast_value(IP, ipaddr) when is_list(IP) ->
+encode_value(IP, ipaddr) when is_list(IP) ->
     case inet_parse:ipv4_address(IP) of
         {ok, {A, B, C, D}} ->
             <<A:8, B:8, C:8, D:8>>;
         _ ->
-            ?WARNING_MSG("Unable to cast attribute value ~p to ipaddr~n", [IP]),
-            throw({error, typecast})
+            ?WARNING_MSG("Unable to encode attribute value ~p as ipaddr~n", [IP]),
+            throw({error, encode})
     end;
-typecast_value({A, B, C, D}, ipaddr) ->
+encode_value({A, B, C, D}, ipaddr) ->
     <<A:8, B:8, C:8, D:8>>;
-typecast_value(Value, Type) ->
-    ?WARNING_MSG("Unable to cast attribute value ~p to ~p~n", [Value, Type]),
-    throw({error, typecast}).
+encode_value(Value, Type) ->
+    ?WARNING_MSG("Unable to encode attribute value ~p as ~p~n", [Value, Type]),
+    throw({error, encode}).
 
 identify_packet(1) ->
     {ok, 'Access-Request'};
