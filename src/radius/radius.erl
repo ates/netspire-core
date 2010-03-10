@@ -47,7 +47,7 @@ decode_attribute(<<?ATTRIBUTE>>) ->
                     {ok, Type, Value, Rest1};
                 A ->
                     {Value, Rest1} = decode_value(Rest, Length - 2, A#attribute.type),
-                    {ok, Type, Value, Rest1}
+                    {ok, A#attribute.name, Value, Rest1}
             end
     end.
 
@@ -59,7 +59,7 @@ decode_vendor_attribute(<<?VENDOR_ATTRIBUTE>>) ->
             {ok, {Id, Type}, Value, Rest1};
         A ->
             {Value, Rest1} = decode_value(Rest, Length - 2, A#attribute.type),
-            {ok, {Id, Type}, Value, Rest1}
+            {ok, A#attribute.name, Value, Rest1}
     end.
 
 decode_value(Bin, Length, string) ->
