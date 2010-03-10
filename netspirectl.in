@@ -12,6 +12,11 @@ NETSPIRE_DB=%%SPOOLDIR%%
 NETSPIRE_EBIN=%%BEAMDIR%%
 # Path to netspire.conf file
 NETSPIRE_CONFIG=%%NETSPIRE_CONFIG%%
+# Path to netspire logs
+NETSPIRE_LOG=%%NETSPIRE_LOG%%
+
+ERL_CRASH_DUMP=$NETSPIRE_LOG/erl_crash.dump
+export ERL_CRASH_DUMP
 
 start() {
     echo "Starting Netspire"

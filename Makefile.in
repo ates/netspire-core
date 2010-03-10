@@ -44,6 +44,7 @@ install: all
 		-e 's!%%SPOOLDIR%%!$(SPOOLDIR)!g' \
 		-e 's!%%BEAMDIR%%!$(BEAMDIR)!g' \
 		-e 's!%%ERL%%!@ERL@!g' \
+		-e 's!%%NETSPIRE_LOG%%!$(LOGDIR)!g' \
 		-e 's!%%NETSPIRE_CONFIG%%!$(ETCDIR)/netspire.conf!g'
 	install -m 755 netspirectl $(SBINDIR)
 
