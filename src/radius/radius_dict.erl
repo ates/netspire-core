@@ -3,10 +3,8 @@
 %%% Purpose : Provides RADIUS dictionary.
 %%%----------------------------------------------------------------------
 -module(radius_dict).
--behaviour(gen_server).
 
--export([start_link/0, lookup_attribute/1, lookup_value/2]).
--export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
+-export([start/0, lookup_attribute/1, lookup_value/2]).
 
 -include("radius.hrl").
 -include("../netspire.hrl").
@@ -14,16 +12,11 @@
 -define(ATTRS_TABLE, radius_dict_attrs).
 -define(VALUES_TABLE, radius_dict_values).
 
-start_link() ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
-
-init(_Args) ->
-    process_flag(trap_exit, true),
+start() ->
     ?INFO_MSG("Starting module ~p~n", [?MODULE]),
     ets:new(?ATTRS_TABLE, [named_table, {keypos, 2}]),
     ets:new(?VALUES_TABLE, [named_table]),
-    load_dictionary("dictionary"),
-    {ok, empty}.
+    load_dictionary("dictionary").
 
 load_dictionary(File) ->
     case file:open(dictionary_path(File), [read]) of
@@ -129,22 +122,3 @@ lookup_value(A, V) ->
         [] ->
             not_found
     end.
-
-handle_call(_Request, _From, State) ->
-    Reply = ok,
-    {reply, Reply, State}.
-
-handle_cast(_Msg, State) ->
-    {noreply, State}.
-
-handle_info({'EXIT', _Pid, normal}, State) ->
-    {noreply, State};
-
-handle_info(_Msg, State) ->
-    {noreply, State}.
-
-terminate(_Reason, _State) ->
-    ok.
-
-code_change(_OldVsn, State, _Extra) ->
-    {ok, State}.
