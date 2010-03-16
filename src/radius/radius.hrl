@@ -36,11 +36,6 @@
 -record(nas_spec, {ip, name, secret, module}).
 
 %%---------------------------------------------------------------------
-%% Data Type: session
-%%----------------------------------------------------------------------
--record(session, {id, ip, username, status, started_at, expires_at, finished_at, nas_spec, data}).
-
-%%---------------------------------------------------------------------
 %% Data Type: attribute
 %% where:
 %%    code: Numeric code of the attribute.
