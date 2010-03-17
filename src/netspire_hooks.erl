@@ -111,7 +111,7 @@ do_run([{_Seq, Module, Fun} | Ls], Hook, Args) ->
     catch
         _:Reason ->
             ?ERROR_MSG("Error while running hook ~p ~p"
-                       " with args: ~p due ~p~n", [Hook, {Module, Fun}, Args, Reason]),
+                       " with args: ~p due to ~p~n", [Hook, {Module, Fun}, Args, Reason]),
             do_run(Ls, Hook, Args)
     end.
 
@@ -128,7 +128,7 @@ do_run_fold([{_Seq, Module, Fun} | Ls], Hook, Value, Args) ->
     catch
         _:Reason ->
             ?ERROR_MSG("Error while running hook ~p ~p"
-                       " with args: ~p due ~p~n", [Hook, {Module, Fun}, Args, Reason]),
+                       " with args: ~p due to ~p~n", [Hook, {Module, Fun}, Args, Reason]),
             do_run_fold(Ls, Hook, Value, Args)
     end.
 

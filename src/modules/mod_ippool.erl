@@ -136,7 +136,7 @@ renew_framed_ip(Response, ?INTERIM_UPDATE, Request, _) ->
             ok;
         {error, Reason} ->
             ?WARNING_MSG("Cannot renew Framed-IP-Address ~s"
-                "due ~p~n", [inet_parse:ntoa(IP), Reason])
+                "due to ~p~n", [inet_parse:ntoa(IP), Reason])
     end,
     Response;
 renew_framed_ip(Response, _, _, _) ->
