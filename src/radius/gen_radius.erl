@@ -136,8 +136,7 @@ sweep_request(Pid) ->
     case ets:match_object(?MODULE, {'_', Pid}) of
         [{{IP, Port, Ident}, Pid}] ->
             ets:delete(?MODULE, {IP, Port, Ident});
-        '$end_of_table' ->
-            ok
+        [] -> ok
     end.
 
 sweep_request(IP, Port, Packet) ->
