@@ -74,6 +74,9 @@ override_global.
       %% RADIUS CHAP auth type
       {mod_chap, []},
 
+      %% RADIUS Digest auth type
+      {mod_digest, []},
+
       %% RADIUS MS-CHAP-V2 auth type
       {mod_mschap_v2, [
         {use_mppe, no}, {require_encryption, yes}, {require_strong, yes}

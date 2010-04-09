@@ -76,6 +76,12 @@ ATTRIBUTE	Port-Limit		62	integer
 ATTRIBUTE	Connect-Info		77	string
 
 #
+#  As defined in draft-sterman-aaa-sip-00.txt
+#
+ATTRIBUTE   Digest-Response             206 string
+ATTRIBUTE   Digest-Attributes           207 octets
+
+#
 #	Experimental Non Protocol Attributes used by Cistron-Radiusd
 #
 ATTRIBUTE	Huntgroup-Name		221	string

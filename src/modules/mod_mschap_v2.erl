@@ -93,7 +93,7 @@ mschap_v2_auth_response(PasswordHash, NTResponse, Challenge) ->
     ShaContext6 = crypto:sha_update(ShaContext5, Challenge),
     ShaContext7 = crypto:sha_update(ShaContext6, mschap_v2_magic2()),
     Digest1 = crypto:sha_final(ShaContext7),
-    "S=" ++ binary_to_hex_string(Digest1).
+    "S=" ++ netspire_util:binary_to_hex_string(Digest1).
 
 mschap_v2_peer_challenge(<<_:16, Challenge:16/binary-unit:8, _Rest/binary>>) ->
     Challenge.
@@ -133,11 +133,3 @@ latin1_to_unicode([], Ret) ->
     lists:reverse(Ret);
 latin1_to_unicode([C | T], Acc) ->
     latin1_to_unicode(T, [0, C | Acc]).
-
-list_to_hex_string([]) ->
-    [];
-list_to_hex_string([H | T]) ->
-    netspire_util:to_hex(H) ++ list_to_hex_string(T).
-
-binary_to_hex_string(Bin) ->
-    list_to_hex_string(binary_to_list(Bin)).
