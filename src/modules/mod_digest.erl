@@ -22,17 +22,14 @@ stop() ->
     ?INFO_MSG("Stop dynamic module ~p~n", [?MODULE]),
     netspire_hooks:delete(radius_auth, ?MODULE, verify_digest).
 
-verify_digest(_, Request, UserName, Password, Replies, _Client) ->
+verify_digest(_, Request, UserNameRealm, Password, Replies, _Client) ->
     case radius:attribute_value("Digest-Response", Request) of
-        undefined ->
-            ?ERROR_MSG("Cannot find the Digest-Response attribute in packet~n", []),
-            Request;
+        undefined -> Request;
         DigestResponse ->
             case radius:attribute_value("Digest-Attributes", Request) of
-                undefined ->
-                    ?ERROR_MSG("Cannot find the Digest-Attributes attribute in packet~n", []),
-                    Request;
+                undefined -> Request;
                 _Attrs ->
+                    UserName = hd(string:tokens(UserNameRealm, "@")),
                     Nonce = digest_attribute_value("Digest-Nonce", Request),
                     CNonce = digest_attribute_value("Digest-CNonce", Request),
                     HA1 = do_ha1(UserName, Password, Nonce, CNonce, Request),
