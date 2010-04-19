@@ -13,7 +13,6 @@
 
 start(_Options) ->
     ?INFO_MSG("Starting dynamic module ~p~n", [?MODULE]),
-    crypto:start(),
     netspire_hooks:add(radius_auth, ?MODULE, verify_mschap_v2).
 
 stop() ->

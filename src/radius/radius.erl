@@ -110,7 +110,7 @@ encode_response(Request, Response, Secret) ->
     case encode_attributes(A) of
         {ok, Attrs} ->
             Length = <<(20 + byte_size(Attrs)):16>>,
-            Auth = erlang:md5([Code, Ident, Length, ReqAuth, Attrs, Secret]),
+            Auth = crypto:md5([Code, Ident, Length, ReqAuth, Attrs, Secret]),
             Data = list_to_binary([Code, Ident, Length, Auth, Attrs]),
             {ok, Data};
         _ ->

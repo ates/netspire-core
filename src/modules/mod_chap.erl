@@ -34,7 +34,7 @@ verify_chap(_, Request, UserName, Password, Replies, _Client) ->
     end.
 
 do_chap(UserName, <<ChapId, ChapPassword/binary>>, Challenge, Password, Replies) ->
-    PasswordHash = erlang:md5([ChapId, Password, Challenge]),
+    PasswordHash = crypto:md5([ChapId, Password, Challenge]),
     case PasswordHash == ChapPassword of
         true ->
             ?INFO_MSG("CHAP authentication succeeded: ~p~n", [UserName]),
