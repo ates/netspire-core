@@ -24,6 +24,7 @@
 #
 $INCLUDE dictionary.rfc2869
 $INCLUDE dictionary.rfc3162
+$INCLUDE dictionary.rfc3576
 $INCLUDE dictionary.microsoft
 $INCLUDE dictionary.mikrotik
 $INCLUDE dictionary.netspire
