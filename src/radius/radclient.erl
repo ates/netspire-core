@@ -30,14 +30,12 @@ request(auth, IP, Secret, Attrs) ->
             end;
         Error -> Error
     end;
-
 request(acct, IP, Secret, Attrs) ->
     Packet = generate_packet(?ACCOUNTING_REQUEST, Secret, Attrs),
     case send_packet(IP, ?ACCOUNTING_REQUEST_PORT, Packet, ?TRIES) of
         {ok, Reply} when Reply#radius_packet.code == ?ACCT_RESPONSE -> ok;
         _ -> noreply
     end;
-
 request(disconnect, IP, Secret, Attrs) ->
     Packet = generate_packet(?DISCONNECT_REQUEST, Secret, Attrs),
     case send_packet(IP, ?POD_COA_REQUEST_PORT, Packet, ?TRIES) of
@@ -48,7 +46,6 @@ request(disconnect, IP, Secret, Attrs) ->
             end;
         Error -> Error
     end;
-
 request(coa, IP, Secret, Attrs) ->
     Packet = generate_packet(?COA_REQUEST, Secret, Attrs),
     case send_packet(IP, ?POD_COA_REQUEST_PORT, Packet, ?TRIES) of
@@ -58,10 +55,7 @@ request(coa, IP, Secret, Attrs) ->
                 ?COA_NAK -> {failed, Reply#radius_packet.attrs}
             end;
         Error -> Error
-    end;
-
-request(_, _, _, _) ->
-    {error, unsupported_request_type}.
+    end.
 
 send_packet(_IP, _Port, _Packet, 0) ->
     {error, timeout};
