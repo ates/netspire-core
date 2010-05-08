@@ -5,8 +5,8 @@
 %% API
 -export([info/0,
          allocate/1,
-         add_framed_ip/4,
-         renew_framed_ip/4]).
+         add_framed_ip/2,
+         renew_framed_ip/1]).
 
 %% gen_module callbacks
 -export([start/1, stop/0]).
@@ -34,8 +34,8 @@ start(Options) ->
             Pools = proplists:get_value(pools, Options, []),
             mod_ippool:allocate(Pools)
     end,
-    netspire_hooks:add(radius_access_accept, ?MODULE, add_framed_ip),
-    netspire_hooks:add(radius_acct_request, ?MODULE, renew_framed_ip).
+    netspire_hooks:add(ippool_lease_ip, ?MODULE, add_framed_ip),
+    netspire_hooks:add(ippool_renew_ip, ?MODULE, renew_framed_ip).
 
 allocate(Pools) ->
     ?INFO_MSG("Allocating ip pools~n", []),
@@ -101,9 +101,9 @@ info() ->
     F = fun(Key) -> mnesia:dirty_read({ippool, Key}) end,
     lists:map(F, mnesia:dirty_all_keys(ippool)).
 
-add_framed_ip({reject, _} = Response, _, _, _) ->
+add_framed_ip(_, {reject, _} = Response) ->
     Response;
-add_framed_ip(Response, _Request, _Extra, _Client) ->
+add_framed_ip(_, Response) ->
     case radius:attribute_value("Framed-IP-Address", Response) of
         undefined ->
             Pool = case radius:attribute_value("Netspire-Framed-Pool", Response) of
@@ -114,7 +114,7 @@ add_framed_ip(Response, _Request, _Extra, _Client) ->
             end,
             case lease(Pool) of
                 {ok, IP} ->
-                    ?INFO_MSG("Adding Framed-IP-Address ~p~n", [IP]),
+                    ?INFO_MSG("Adding Framed-IP-Address ~s~n", [inet_parse:ntoa(IP)]),
                     Attrs = Response#radius_packet.attrs,
                     Response#radius_packet{attrs = [{"Framed-IP-Address", IP} | Attrs]};
                 {error, empty} ->
@@ -127,20 +127,17 @@ add_framed_ip(Response, _Request, _Extra, _Client) ->
         _ -> Response
     end.
 
-renew_framed_ip(Response, ?INTERIM_UPDATE, Request, _) ->
+renew_framed_ip(Request) ->
     IP = radius:attribute_value("Framed-IP-Address", Request),
     case renew(IP) of
         {ok, _} ->
-            ?INFO_MSG("Framed-IP-Address ~p is renewed~n", [IP]);
+            ?INFO_MSG("Framed-IP-Address ~s is renewed~n", [inet_parse:ntoa(IP)]);
         {error, not_found} ->
             ok;
         {error, Reason} ->
             ?WARNING_MSG("Cannot renew Framed-IP-Address ~s"
                 "due to ~p~n", [inet_parse:ntoa(IP), Reason])
-    end,
-    Response;
-renew_framed_ip(Response, _, _, _) ->
-    Response.
+    end.
 
 stop() ->
     ?INFO_MSG("Stop dynamic module ~p~n", [?MODULE]),
