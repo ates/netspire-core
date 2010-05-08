@@ -5,7 +5,7 @@
 %% API
 -export([info/0,
          allocate/1,
-         add_framed_ip/2,
+         add_framed_ip/1,
          renew_framed_ip/1]).
 
 %% gen_module callbacks
@@ -101,9 +101,9 @@ info() ->
     F = fun(Key) -> mnesia:dirty_read({ippool, Key}) end,
     lists:map(F, mnesia:dirty_all_keys(ippool)).
 
-add_framed_ip(_, {reject, _} = Response) ->
+add_framed_ip({reject, _} = Response) ->
     Response;
-add_framed_ip(_, Response) ->
+add_framed_ip(Response) ->
     case radius:attribute_value("Framed-IP-Address", Response) of
         undefined ->
             Pool = case radius:attribute_value("Netspire-Framed-Pool", Response) of
