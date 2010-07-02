@@ -64,7 +64,7 @@ do_mschap_v2(UserName, ChapChallenge, ChapResponse, Password, Replies, Auth, Sec
 
 mschap_v2_challenge_response(Challenge, PasswordHash) ->
     Keys = split_password_hash(list_to_binary([PasswordHash, <<0, 0, 0, 0, 0>>])),
-    Cyphers = lists:map(fun(K) -> netspire_crypto:des_ecb_encrypt(K, Challenge) end, Keys),
+    Cyphers = lists:map(fun(K) -> crypto:des_ecb_encrypt(K, Challenge) end, Keys),
     list_to_binary(Cyphers).
 
 split_password_hash(<<A:7/binary-unit:8, B:7/binary-unit:8, C:7/binary-unit:8>>) ->

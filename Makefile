@@ -14,7 +14,6 @@ endif
 all: compile
 
 compile:
-	make -C c_src compile
 	test -d ebin || mkdir ebin
 	$(ERL) $(EFLAGS) -make
 	cp $(APP_NAME).app ebin
@@ -24,7 +23,6 @@ doc:
 		'[{def, {vsn, "$(VSN)"}}, {packages, false}]'
 
 clean:
-	make -C c_src clean
 	test ! -d doc || rm -rf doc
 	rm -rf ebin erl_crash.dump
 	find . -name "*~" -delete
