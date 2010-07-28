@@ -1,5 +1,4 @@
 {"src/radius/*", [debug_info, {outdir, "ebin"}]}.
 {"src/*", [debug_info, {outdir, "ebin"}]}.
-{"src/crypto/*", [debug_info, {outdir, "ebin"}]}.
 {"src/netflow/*", [debug_info, {outdir, "ebin"}]}.
 {"src/modules/*", [debug_info, {outdir, "ebin"}]}.
