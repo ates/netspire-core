@@ -19,6 +19,7 @@ start(normal, _StartArgs) ->
         Path ->
             code:add_pathsz(Path)
     end,
+    netspire_hooks:start(),
     start_services(),
     start_modules(),
     Sup.
