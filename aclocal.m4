@@ -10,12 +10,10 @@ AC_DEFUN(AM_WITH_ERLANG,
    fi
 
    cat >>conftest.erl <<_EOF
-
 -module(conftest).
 -author('alexey@sevcom.net').
 
 -export([[start/0]]).
--include_lib("ssl/include/ssl_pkix.hrl").
 
 start() ->
     EIDirS = code:lib_dir("erl_interface") ++ "\n",
@@ -24,11 +22,13 @@ start() ->
     file:write_file("conftest.out", list_to_binary(EIDirS ++ EILibS ++ ssldef() ++ RootDirS)),
     halt().
 
--[ifdef]('id-pkix').
-ssldef() -> "-DSSL39\n".
--else.
-ssldef() -> "\n".
--endif.
+ssldef() ->
+   OTP = (catch erlang:system_info(otp_release)),
+   if
+    OTP >= "R14" -> "-DSSL40\n";
+    OTP >= "R12" -> "-DSSL39\n";
+        true -> ""
+   end.
 
 %% return physical architecture based on OS/Processor
 archname() ->
@@ -44,6 +44,7 @@ archname() ->
         atom_to_list(UnixName) ++ "-" ++ Cpu;
     _ -> "generic"
     end.
+
 %% Return arch-based library path or a default value if this directory
 %% does not exist
 libpath(App) ->
