@@ -9,35 +9,35 @@
 -export([start/1, stop/0]).
 
 -include("../netspire.hrl").
--include("../netspire_radius.hrl").
 -include("../radius/radius.hrl").
 
 start(_Options) ->
     ?INFO_MSG("Starting dynamic module ~p~n", [?MODULE]),
-    crypto:start(),
     netspire_hooks:add(radius_auth, ?MODULE, verify_mschap_v2).
 
 stop() ->
     ?INFO_MSG("Stop dynamic module ~p~n", [?MODULE]),
     netspire_hooks:delete(radius_auth, ?MODULE, verify_mschap_v2).
 
-verify_mschap_v2(_, Request, UserName, Password, Replies, _Client) ->
-    case radius:attribute_value(?MS_CHAP_CHALLENGE, Request) of
+verify_mschap_v2(_, Request, UserName, Password, Replies, Client) ->
+    case radius:attribute_value("MS-CHAP-Challenge", Request) of
         undefined ->
             Request;
         ChapChallenge ->
-            case radius:attribute_value(?MS_CHAP2_RESPONSE, Request) of
+            case radius:attribute_value("MS-CHAP2-Response", Request) of
                 undefined ->
                     Request;
                 Value ->
+                    Auth = Request#radius_packet.auth,
+                    Secret = Client#nas_spec.secret,
                     ChapResponse = list_to_binary(Value),
-                    do_mschap_v2(UserName, ChapChallenge, ChapResponse, Password, Replies)
+                    do_mschap_v2(UserName, ChapChallenge, ChapResponse, Password, Replies, Auth, Secret)
             end
     end.
 
-do_mschap_v2(UserName, ChapChallenge, ChapResponse, Password, Replies) ->
+do_mschap_v2(UserName, ChapChallenge, ChapResponse, Password, Replies, Auth, Secret) ->
     Password1 = latin1_to_unicode(Password),
-    PasswordHash = netspire_crypto:md4(Password1),
+    PasswordHash = crypto:md4(Password1),
     NTResponse = mschap_v2_nt_response(ChapResponse),
     PeerChallenge = mschap_v2_peer_challenge(ChapResponse),
     Challenge = mschap_v2_challenge_hash(PeerChallenge, ChapChallenge, UserName),
@@ -48,21 +48,27 @@ do_mschap_v2(UserName, ChapChallenge, ChapResponse, Password, Replies) ->
             Ident = mschap_v2_ident(ChapResponse),
             AuthResponse = mschap_v2_auth_response(PasswordHash, NTResponse, Challenge),
             Chap2Success = [Ident] ++ AuthResponse,
-            Attrs = [{?MS_CHAP2_SUCCESS, Chap2Success}],
+            Attrs = [{"MS-CHAP2-Success", Chap2Success}],
             ?INFO_MSG("MS-CHAP-V2 authentication succeeded: ~p~n", [UserName]),
-            {stop, {accept, Replies ++ Attrs}};
+            case gen_module:get_option(?MODULE, use_mppe) of
+                yes ->
+                    MPPE = mschap_v2_mppe:generate_mppe_attrs(NTResponse, PasswordHash, Auth, Secret),
+                    {stop, {accept, Replies ++ Attrs ++ MPPE}};
+                _ ->
+                    {stop, {accept, Replies ++ Attrs}}
+            end;
         _ ->
             ?INFO_MSG("MS-CHAP-V2 authentication failed: ~p~n", [UserName]),
             {stop, {reject, []}}
     end.
 
 mschap_v2_challenge_response(Challenge, PasswordHash) ->
-    Keys = split_password_hash(concat_binary([PasswordHash, <<0, 0, 0, 0, 0>>])),
-    Cyphers = lists:map(fun(K) -> netspire_crypto:des_ecb_encrypt(K, Challenge) end, Keys),
-    concat_binary(Cyphers).
+    Keys = split_password_hash(list_to_binary([PasswordHash, <<0, 0, 0, 0, 0>>])),
+    Cyphers = lists:map(fun(K) -> crypto:des_ecb_encrypt(K, Challenge) end, Keys),
+    list_to_binary(Cyphers).
 
 split_password_hash(<<A:7/binary-unit:8, B:7/binary-unit:8, C:7/binary-unit:8>>) ->
-    lists:map(fun netspire_crypto:des_set_parity/1, [A, B, C]).
+    lists:map(fun set_parity/1, [A, B, C]).
 
 mschap_v2_challenge_hash(PeerChallenge, AuthChallenge, UserName) ->
     ShaContext = crypto:sha_init(),
@@ -74,7 +80,7 @@ mschap_v2_challenge_hash(PeerChallenge, AuthChallenge, UserName) ->
     Challenge.
 
 mschap_v2_auth_response(PasswordHash, NTResponse, Challenge) ->
-    PasswordHashHash = netspire_crypto:md4(PasswordHash),
+    PasswordHashHash = crypto:md4(PasswordHash),
     ShaContext = crypto:sha_init(),
     ShaContext1 = crypto:sha_update(ShaContext, PasswordHashHash),
     ShaContext2 = crypto:sha_update(ShaContext1, NTResponse),
@@ -86,7 +92,7 @@ mschap_v2_auth_response(PasswordHash, NTResponse, Challenge) ->
     ShaContext6 = crypto:sha_update(ShaContext5, Challenge),
     ShaContext7 = crypto:sha_update(ShaContext6, mschap_v2_magic2()),
     Digest1 = crypto:sha_final(ShaContext7),
-    "S=" ++ binary_to_hex_string(Digest1).
+    "S=" ++ netspire_util:binary_to_hex_string(Digest1).
 
 mschap_v2_peer_challenge(<<_:16, Challenge:16/binary-unit:8, _Rest/binary>>) ->
     Challenge.
@@ -110,17 +116,19 @@ mschap_v2_magic2() ->
       16#65, 16#20, 16#69, 16#74, 16#65, 16#72, 16#61, 16#74, 16#69, 16#6F,
       16#6E>>.
 
+set_parity(Bin) ->
+  set_parity(Bin, 0, 0, <<>>).
+
+set_parity(<<>>, _, Next, Output) ->
+  Result = Next bor 1,
+  <<Output/binary, Result>>;
+set_parity(<<Current:8, Rest/binary>>, I, Next, Output) ->
+  Result = (Current bsr I) bor Next bor 1,
+  set_parity(Rest, I + 1, Current bsl (7 - I), <<Output/binary, Result>>).
+
 latin1_to_unicode(S) ->
     latin1_to_unicode(S, []).
 latin1_to_unicode([], Ret) ->
     lists:reverse(Ret);
 latin1_to_unicode([C | T], Acc) ->
     latin1_to_unicode(T, [0, C | Acc]).
-
-list_to_hex_string([]) ->
-    [];
-list_to_hex_string([H | T]) ->
-    netspire_util:to_hex(H) ++ list_to_hex_string(T).
-
-binary_to_hex_string(Bin) ->
-    list_to_hex_string(binary_to_list(Bin)).

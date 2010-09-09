@@ -9,7 +9,6 @@
 -export([start/1, stop/0]).
 
 -include("../netspire.hrl").
--include("../netspire_radius.hrl").
 -include("../radius/radius.hrl").
 
 start(_Options) ->
@@ -21,7 +20,7 @@ stop() ->
     netspire_hooks:delete(radius_auth, ?MODULE, verify_pap).
 
 verify_pap(_, Request, UserName, Password, Replies, Client) ->
-    case radius:attribute_value(?USER_PASSWORD, Request) of
+    case radius:attribute_value("Password", Request) of
         undefined ->
             Request;
         UserPassword ->
@@ -48,16 +47,9 @@ pap_encrypt_password(<<>>, _Secret, _Auth, Ret) ->
     binary_to_list(Ret);
 
 pap_encrypt_password(<<P:16/binary, Rest/binary>>, Secret, Auth, Ret) ->
-    PX = do_bxor(P, erlang:md5([Secret, Auth])),
-    pap_encrypt_password(Rest, Secret, PX, concat_binary([Ret, PX]));
+    PX = netspire_util:do_bxor(P, crypto:md5([Secret, Auth])),
+    pap_encrypt_password(Rest, Secret, PX, list_to_binary([Ret, PX]));
 pap_encrypt_password(P, Secret, Auth, Ret) ->
-    PX = do_bxor(P, erlang:md5([Secret, Auth])),
-    binary_to_list(concat_binary([Ret, PX])).
-
-do_bxor(B1, B2) ->
-    do_bxor(B1, B2, <<>>).
-do_bxor(<<>>, B2, Ret) ->
-    concat_binary([Ret, B2]);
-do_bxor(<<I1, Rest1/binary>>, <<I2, Rest2/binary>>, Acc) ->
-    do_bxor(Rest1, Rest2, concat_binary([Acc, I1 bxor I2])).
+    PX = netspire_util:do_bxor(P, crypto:md5([Secret, Auth])),
+    binary_to_list(list_to_binary([Ret, PX])).
 

@@ -24,14 +24,8 @@ start_link() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 init([]) ->
-    Dict = {radius_dict,
-            {radius_dict, start_link, []},
-            permanent,
-            brutal_kill,
-            worker,
-            [radius_dict]
-           },
-    {ok, {{one_for_one, 10, 1}, [Dict]}}.
+    radius_dict:start(),
+    {ok, {{one_for_one, 10, 1}, []}}.
 
 process_option({listen, Options}) ->
     lists:foreach(fun process_listen_option/1, Options);

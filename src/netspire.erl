@@ -10,6 +10,7 @@ start(normal, _StartArgs) ->
     init_mnesia(),
     netspire_config:start(),
     init_logging(),
+    crypto:start(),
     gen_module:start(),
     Sup = netspire_sup:start_link(),
     case netspire_config:get_option(code_path) of
@@ -18,6 +19,7 @@ start(normal, _StartArgs) ->
         Path ->
             code:add_pathsz(Path)
     end,
+    netspire_hooks:start(),
     start_services(),
     start_modules(),
     Sup.

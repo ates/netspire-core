@@ -76,7 +76,7 @@ handle_info({udp, Socket, SrcIP, SrcPort, Bin}, State) ->
                     inet:setopts(Socket, [{active, once}]),
                     {noreply, State}
             end;
-        invalid ->
+        {error, invalid} ->
             ?WARNING_MSG("Invalid packet from NAS: ~s~n", [inet_parse:ntoa(SrcIP)]),
             inet:setopts(Socket, [{active, once}]),
             {noreply, State}
@@ -121,8 +121,12 @@ do_callback(IP, Port, Socket, Client, Packet) ->
 
 do_reply(Socket, IP, Port, Response, Request, Client) ->
     Secret = Client#nas_spec.secret,
-    Data = radius:encode_response(Request, Response, Secret),
-    gen_udp:send(Socket, IP, Port, Data).
+    case radius:encode_response(Request, Response, Secret) of
+        {ok, Data} ->
+            gen_udp:send(Socket, IP, Port, Data);
+        Error ->
+            ?ERROR_MSG("Unable to respond to client due to ~p~n", [Error])
+    end.
 
 store_request(IP, Port, Packet, Pid) ->
     Ident = Packet#radius_packet.ident,
@@ -132,8 +136,7 @@ sweep_request(Pid) ->
     case ets:match_object(?MODULE, {'_', Pid}) of
         [{{IP, Port, Ident}, Pid}] ->
             ets:delete(?MODULE, {IP, Port, Ident});
-        '$end_of_table' ->
-            ok
+        [] -> ok
     end.
 
 sweep_request(IP, Port, Packet) ->

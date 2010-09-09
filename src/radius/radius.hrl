@@ -3,6 +3,24 @@
 %%% Purpose : Describes packet format of the RADIUS protocol (RFC 2865)
 %%%----------------------------------------------------------------------
 
+-define(ACCESS_REQUEST, 1).
+-define(ACCESS_ACCEPT, 2).
+-define(ACCESS_REJECT, 3).
+-define(ACCOUNTING_REQUEST, 4).
+-define(ACCT_RESPONSE, 5).
+-define(DISCONNECT_REQUEST, 40).
+-define(COA_REQUEST, 43).
+
+-define(DISCONNECT_ACK, 41).
+-define(DISCONNECT_NAK, 42).
+-define(COA_ACK, 44).
+-define(COA_NAK, 45).
+
+%% The Acct-Status-Type attribute values
+-define(ACCT_START, 1).
+-define(ACCT_STOP, 2).
+-define(INTERIM_UPDATE, 3).
+
 %%---------------------------------------------------------------------
 %% Data Type: radius_packet
 %% where:
@@ -25,11 +43,6 @@
 %%    module: Module suitable to handle requests from NAS.
 %%----------------------------------------------------------------------
 -record(nas_spec, {ip, name, secret, module}).
-
-%%---------------------------------------------------------------------
-%% Data Type: session
-%%----------------------------------------------------------------------
--record(session, {id, ip, username, status, started_at, expires_at, finished_at, nas_spec, data}).
 
 %%---------------------------------------------------------------------
 %% Data Type: attribute

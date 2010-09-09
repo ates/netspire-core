@@ -10,7 +10,6 @@
 -export([start/1, stop/0]).
 
 -include("../netspire.hrl").
--include("../netspire_radius.hrl").
 -include("../radius/radius.hrl").
 
 start(_Options) ->
@@ -22,11 +21,11 @@ stop() ->
     netspire_hooks:delete(radius_auth, ?MODULE, verify_chap).
 
 verify_chap(_, Request, UserName, Password, Replies, _Client) ->
-    case radius:attribute_value(?CHAP_PASSWORD, Request) of
+    case radius:attribute_value("CHAP-Password", Request) of
         undefined -> undefined;
         Value ->
             Challenge =
-                case radius:attribute_value(?CHAP_CHALLENGE, Request) of
+                case radius:attribute_value("Chap-Challenge", Request) of
                 	undefined -> Request#radius_packet.auth; 
                     ChapChallenge -> ChapChallenge
                 end,
@@ -35,7 +34,7 @@ verify_chap(_, Request, UserName, Password, Replies, _Client) ->
     end.
 
 do_chap(UserName, <<ChapId, ChapPassword/binary>>, Challenge, Password, Replies) ->
-    PasswordHash = erlang:md5([ChapId, Password, Challenge]),
+    PasswordHash = crypto:md5([ChapId, Password, Challenge]),
     case PasswordHash == ChapPassword of
         true ->
             ?INFO_MSG("CHAP authentication succeeded: ~p~n", [UserName]),

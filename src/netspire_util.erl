@@ -1,6 +1,6 @@
 -module(netspire_util).
 
--export([ipconv/1, timestamp/0, to_hex/1]).
+-export([ipconv/1, timestamp/0, to_hex/1, do_bxor/2, binary_to_hex_string/1]).
 
 ipconv({A, B, C, D}) ->
     <<I:4/big-integer-unit:8>> = <<A, B, C, D>>, I;
@@ -29,6 +29,16 @@ timestamp() ->
 to_hex(N) when N < 256 ->
     [hex(N div 16), hex(N rem 16)].
 
+do_bxor(B1, B2) ->
+    do_bxor(B1, B2, <<>>).
+do_bxor(<<>>, B2, Ret) ->
+    list_to_binary([Ret, B2]);
+do_bxor(<<I1, Rest1/binary>>, <<I2, Rest2/binary>>, Acc) ->
+    do_bxor(Rest1, Rest2, list_to_binary([Acc, I1 bxor I2])).
+
+binary_to_hex_string(Bin) ->
+    list_to_hex_string(binary_to_list(Bin)).
+
 %% Internal functions
 hex(N) when N < 10 ->
     $0 + N;
@@ -39,3 +49,8 @@ normalizev6(<<>>) ->
     [];
 normalizev6(<<A:8, B:8, Rest/binary>>) ->
     [to_hex(A) ++ to_hex(B)] ++ normalizev6(Rest).
+
+list_to_hex_string([]) ->
+    [];
+list_to_hex_string([H | T]) ->
+    to_hex(H) ++ list_to_hex_string(T).
