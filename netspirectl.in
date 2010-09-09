@@ -62,7 +62,7 @@ shell() {
 
 usage()
 {
-    echo "usage: $0 {start|stop|shell}"
+    echo "usage: $0 {start|stop|status|shell}"
     exit 1
 }
 
@@ -73,6 +73,9 @@ case $1 in
         start;;
     stop)
         stop;;
+    status)
+        kill -0 $NETSPIRE_PIDFILE 2>/dev/null && \
+            echo "Started" || echo "Stopped";;
     shell)
         shell;;
     *) usage;;
