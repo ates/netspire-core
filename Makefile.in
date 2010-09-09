@@ -10,6 +10,7 @@ SPOOLDIR = $(DESTDIR)@localstatedir@/lib/netspire
 SBINDIR = $(DESTDIR)@sbindir@
 LOGDIR = $(DESTDIR)@localstatedir@/log/netspire
 ETCDIR = $(DESTDIR)@sysconfdir@/netspire
+PIDFILEDIR = $(DESTDIR)@localstatedir@/run/
 
 all: checks all-recursive
 	test -r netspire.app && cp netspire.app ebin
@@ -36,12 +37,14 @@ install: all
 	install -d -m 750 $(ETCDIR)
 	install -m 644 *.conf.sample $(ETCDIR)
 	install -d -m 750 $(LOGDIR)
+	install -d -m 755 $(PIDFILEDIR)
 	sed < netspirectl.in > netspirectl \
 		-e 's!%%ERL%%!@ERL@!g' \
 		-e 's!%%SPOOLDIR%%!$(SPOOLDIR)!g' \
 		-e 's!%%BEAMDIR%%!$(BEAMDIR)!g' \
 		-e 's!%%ERL%%!@ERL@!g' \
 		-e 's!%%NETSPIRE_LOG%%!$(LOGDIR)!g' \
+		-e 's!%%PIDFILE%%!$(PIDFILEDIR)/netspire.pid!g' \
 		-e 's!%%NETSPIRE_CONFIG%%!$(ETCDIR)/netspire.conf!g'
 	install -m 755 netspirectl $(SBINDIR)
 
