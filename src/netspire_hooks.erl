@@ -1,7 +1,9 @@
 -module(netspire_hooks).
 
+-behaviour(gen_server).
+
 %% API
--export([start/0,
+-export([start_link/0,
          add/3,
          add/4,
          delete/3,
@@ -10,42 +12,29 @@
          run/2,
          run_fold/3]).
 
+%% gen_server callbacks
+-export([init/1, handle_call/3, handle_cast/2,
+         handle_info/2, terminate/2, code_change/3]).
+
 -include("netspire.hrl").
 
-start() ->
-    ets:new(hooks, [named_table]).
+-record(state, {}).
+
+start_link() ->
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 add(Hook, Module, Fun) ->
     add(Hook, Module, Fun, 100).
 add(Hook, Module, Fun, Seq) ->
-    case ets:lookup(hooks, Hook) of
-        [{_, Ls}] ->
-            El = {Seq, Module, Fun},
-            case lists:member(El, Ls) of
-                true ->
-                    ok;
-                false ->
-                    NewLs = lists:merge(Ls, [El]),
-                    ets:insert(hooks, {Hook, NewLs})
-            end;
-        [] ->
-            NewLs = [{Seq, Module, Fun}],
-            ets:insert(hooks, {Hook, NewLs})
-    end.
+    gen_server:call(?MODULE, {add, Hook, Module, Fun, Seq}).
 
 delete(Hook, Module, Fun) ->
     delete(Hook, Module, Fun, 100).
 delete(Hook, Module, Fun, Seq) ->
-    case ets:lookup(hooks, Hook) of
-        [{_, Ls}] ->
-            NewLs = lists:delete({Seq, Module, Fun}, Ls),
-            ets:insert(hooks, {Hook, NewLs});
-        [] ->
-            ok
-    end.
+    gen_server:call(?MODULE, {delete, Hook, Module, Fun, Seq}).
 
 delete_all(Module) ->
-    do_delete_all(ets:first(hooks), Module).
+    gen_server:call(?MODULE, {delete_all, Module}).
 
 run(Hook, Args) ->
     case ets:lookup(hooks, Hook) of
@@ -63,9 +52,53 @@ run_fold(Hook, Val, Args) ->
             Val
     end.
 
-%%
-%% Internal functions
-%%
+init([]) ->
+    ets:new(hooks, [named_table]),
+    {ok, #state{}}.
+
+handle_call({add, Hook, Module, Fun, Seq}, _From, State) ->
+    case ets:lookup(hooks, Hook) of
+        [{_, Ls}] ->
+            El = {Seq, Module, Fun},
+            case lists:member(El, Ls) of
+                true ->
+                    ok;
+                false ->
+                    NewLs = lists:merge(Ls, [El]),
+                    ets:insert(hooks, {Hook, NewLs})
+            end;
+        [] ->
+            NewLs = [{Seq, Module, Fun}],
+            ets:insert(hooks, {Hook, NewLs})
+    end,
+    {reply, ok, State};
+handle_call({delete, Hook, Module, Fun, Seq}, _From, State) ->
+    case ets:lookup(hooks, Hook) of
+        [{_, Ls}] ->
+            NewLs = lists:delete({Seq, Module, Fun}, Ls),
+            ets:insert(hooks, {Hook, NewLs});
+        [] ->
+            ok
+    end,
+    {reply, ok, State};
+handle_call({delete_all, Module}, _From, State) ->
+    do_delete_all(ets:first(hooks), Module),
+    {reply, ok, State};
+handle_call(_Request, _From, State) ->
+    Reply = ok,
+    {reply, Reply, State}.
+
+handle_cast(_Msg, State) ->
+    {noreply, State}.
+
+handle_info(_Info, State) ->
+    {noreply, State}.
+
+terminate(_Reason, _State) ->
+    ok.
+
+code_change(_OldVsn, State, _Extra) ->
+    {ok, State}.
 
 do_run([], _Hook, _Args) ->
     ok;
