@@ -25,8 +25,7 @@ Currently Netspire runs on Linux, BSD based systems and Mac OS X. Clone this rep
     $ autoconf
     $ ./configure
     $ make (On BSD systems you must use 'gmake' instead 'make')
-	$ cp netspire.conf.sample netspire.conf
-	$ make run (using for testing purpose)
+	$ make install
 
 Future plans
 ------------
