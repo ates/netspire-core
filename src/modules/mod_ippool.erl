@@ -6,7 +6,8 @@
 -export([info/0,
          allocate/1,
          add_framed_ip/1,
-         renew_framed_ip/1]).
+         renew_framed_ip/1,
+         release_framed_ip/1]).
 
 %% gen_module callbacks
 -export([start/1, stop/0]).
@@ -35,7 +36,8 @@ start(Options) ->
             mod_ippool:allocate(Pools)
     end,
     netspire_hooks:add(ippool_lease_ip, ?MODULE, add_framed_ip),
-    netspire_hooks:add(ippool_renew_ip, ?MODULE, renew_framed_ip).
+    netspire_hooks:add(ippool_renew_ip, ?MODULE, renew_framed_ip),
+    netspire_hooks:add(ippool_release_ip, ?MODULE, release_framed_ip).
 
 allocate(Pools) ->
     ?INFO_MSG("Allocating ip pools~n", []),
@@ -138,6 +140,17 @@ renew_framed_ip(Request) ->
             ?WARNING_MSG("Cannot renew Framed-IP-Address ~s"
                 "due to ~p~n", [inet_parse:ntoa(IP), Reason])
     end.
+
+release_framed_ip(Request) ->
+    IP = radius:attribute_value("Framed-IP-Address", Request),
+    case mnesia:dirty_read({ippool, IP}) of
+        [Rec] ->
+            ?INFO_MSG("Release Framed-IP-Address ~s~n", [inet_parse:ntoa(IP)]),
+            Entry = Rec#ippool_entry{expires_at = 0},
+            mnesia:dirty_write(ippool, Entry);
+        _ -> ok
+    end.
+
 
 stop() ->
     ?INFO_MSG("Stop dynamic module ~p~n", [?MODULE]),
