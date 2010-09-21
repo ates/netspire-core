@@ -7,7 +7,7 @@
 
 start(normal, _StartArgs) ->
     ?INFO_MSG("Starting application ~p~n", [?MODULE]),
-    init_mnesia(),
+    ok = init_mnesia(),
     netspire_config:start(),
     init_logging(),
     crypto:start(),
@@ -74,18 +74,27 @@ init_mnesia() ->
     case Nodes of
         [] ->
             ?INFO_MSG("No additional nodes were found~n", []),
-            mnesia:create_schema([node()]);
-        NodeList ->
-            ?INFO_MSG("Connected nodes: ~p~n", [NodeList]),
-            NodeList
+            mnesia:create_schema([node()]),
+            mnesia:start();
+        _ ->
+            ?INFO_MSG("Connected nodes: ~p~n", [Nodes]),
+            mnesia:start(),
+            mnesia:change_config(extra_db_nodes, Nodes)
     end,
-    mnesia:start(),
-    case mnesia:change_config(extra_db_nodes, Nodes) of
-        {ok, _} -> ok;
-        {error, Reason} ->
-            exit(Reason)
-    end,
-    mnesia:wait_for_tables(mnesia:system_info(local_tables), infinity).
+    mnesia:wait_for_tables(mnesia:system_info(local_tables), infinity),
+    mnesia:change_table_copy_type(schema, node(), disc_copies),
+    wait_for_extra_db_nodes(Nodes, 10).
+
+wait_for_extra_db_nodes(_, 0) ->
+    ?WARNING_MSG("Failed to synchronize extra_db_nodes~n", []),
+    {error, mnesia_timeout};
+wait_for_extra_db_nodes(Nodes, N) when N > 0 ->
+    case Nodes -- mnesia:system_info(db_nodes) of
+        [] -> ok;
+        _ ->
+            receive after 1000 -> ok end,
+            wait_for_extra_db_nodes(Nodes, N - 1)
+    end.
 
 init_logging() ->
     case netspire_config:get_option(logging) of
