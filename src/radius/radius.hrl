@@ -8,11 +8,11 @@
 -define(ACCESS_REJECT, 3).
 -define(ACCOUNTING_REQUEST, 4).
 -define(ACCT_RESPONSE, 5).
--define(DISCONNECT_REQUEST, 40).
--define(COA_REQUEST, 43).
 
+-define(DISCONNECT_REQUEST, 40).
 -define(DISCONNECT_ACK, 41).
 -define(DISCONNECT_NAK, 42).
+-define(COA_REQUEST, 43).
 -define(COA_ACK, 44).
 -define(COA_NAK, 45).
 
