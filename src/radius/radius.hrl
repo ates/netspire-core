@@ -8,6 +8,7 @@
 -define(ACCESS_REJECT, 3).
 -define(ACCOUNTING_REQUEST, 4).
 -define(ACCT_RESPONSE, 5).
+-define(ACCESS_CHALLENGE, 11).
 
 -define(DISCONNECT_REQUEST, 40).
 -define(DISCONNECT_ACK, 41).
