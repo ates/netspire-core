@@ -60,6 +60,15 @@ shell() {
     $ERL -name netspire-remote -hidden -remsh $NODE@$HOST
 }
 
+check_status() {
+    if [ -r $NETSPIRE_PIDFILE ]; then
+        kill -0 `cat $NETSPIRE_PIDFILE` 2>/dev/null && \
+            echo "Started" || echo "Stopped"
+    else
+        echo "Stopped"
+    fi
+}
+
 usage()
 {
     echo "usage: $0 {start|stop|status|shell}"
@@ -74,8 +83,7 @@ case $1 in
     stop)
         stop;;
     status)
-        kill -0 $NETSPIRE_PIDFILE 2>/dev/null && \
-            echo "Started" || echo "Stopped";;
+        check_status;;
     shell)
         shell;;
     *) usage;;
