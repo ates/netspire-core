@@ -116,7 +116,7 @@ init([Options]) ->
 handle_cast({process_request, Socket}, State) ->
     case gen_tcp:recv(Socket, 0) of
         {ok, Bin} ->
-            Request = binary_to_term(Bin),
+            Request = binary_to_term(Bin, [safe]),
             process_rpc_request(Socket, Request);
         {error, closed} ->
             gen_tcp:close(Socket)
