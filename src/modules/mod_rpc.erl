@@ -51,10 +51,10 @@ process_listen_options(Options) ->
 loop(LSocket) ->
     case gen_tcp:accept(LSocket) of
         {ok, Socket} ->
-            gen_server:cast(?MODULE, {process_request, Socket});
+            gen_server:cast(?MODULE, {process_request, Socket}),
+            loop(LSocket);
         _ -> ok
-    end,
-    loop(LSocket).
+    end.
 
 process_rpc_request(Socket, {call, Mod, Fun, Args}) ->
     try
