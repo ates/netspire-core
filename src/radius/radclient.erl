@@ -89,6 +89,7 @@ waiting_for_reply() ->
 end.
 
 generate_packet(RequestId, Secret, Attrs) ->
+    random:seed(now()),
     Ident = random:uniform(255),
     Code = <<RequestId:8>>,
     {ok, A} = radius:encode_attributes(Attrs),
