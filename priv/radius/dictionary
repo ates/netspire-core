@@ -55,6 +55,7 @@ ATTRIBUTE	Callback-Id		20	string
 ATTRIBUTE	Framed-Route		22	string
 ATTRIBUTE	Framed-IPX-Network	23	ipaddr
 ATTRIBUTE	State			24	string
+ATTRIBUTE   Class                   25  octets
 ATTRIBUTE       Vendor-Specific		26	octets
 ATTRIBUTE	Session-Timeout		27	integer
 ATTRIBUTE	Idle-Timeout		28	integer
