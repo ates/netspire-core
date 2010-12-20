@@ -72,6 +72,9 @@ decode_value(Bin, Length, ipaddr) ->
     <<Value:Length/binary, Rest/binary>> = Bin,
     IP = binary_to_list(Value),
     {list_to_tuple(IP), Rest};
+decode_value(Bin, Length, ipv6addr) ->
+    <<Value:Length/binary, Rest/binary>> = Bin,
+    {netspire_util:ipconv(Value), Rest};
 decode_value(Bin, Length, _Type) ->
     decode_value(Bin, Length).
 
@@ -180,6 +183,8 @@ encode_value(IP, ipaddr) when is_list(IP) ->
     end;
 encode_value({A, B, C, D}, ipaddr) ->
     <<A:8, B:8, C:8, D:8>>;
+encode_value(IP, ipv6addr) ->
+    netspire_util:ipconv(IP);
 encode_value(Value, Type) ->
     ?WARNING_MSG("Unable to encode attribute value ~p as ~p~n", [Value, Type]),
     throw({error, encode}).

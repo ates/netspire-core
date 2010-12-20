@@ -5,9 +5,18 @@
 ipconv({A, B, C, D}) ->
     <<I:4/big-integer-unit:8>> = <<A, B, C, D>>, I;
 
+% convert IPv6 address from Binary to List
 ipconv(Bin) when is_binary(Bin) andalso size(Bin) == 16 ->
-    Result = string:join(normalizev6(Bin), ":"),
-    string:to_lower(Result);
+    [hd(erlang:integer_to_list(I, 16)) || <<I:4>> <= Bin];
+
+% convert IPv6 address from List to Binary
+ipconv(Address) when is_list(Address) ->
+    case string:chr(Address, $:) of
+        0 ->
+            <<<<(erlang:list_to_integer([H], 16)):4>> || H <- Address>>;
+        _ ->
+            <<<<(erlang:list_to_integer([H], 16)):4>> || H <- lists:flatten(string:tokens(Address, ":"))>>
+    end;
 
 ipconv(I) when is_integer(I) ->
     A = (I div 16777216) rem 256,
@@ -44,11 +53,6 @@ hex(N) when N < 10 ->
     $0 + N;
 hex(N) when N >= 10, N < 16 ->
     $A + (N - 10).
-
-normalizev6(<<>>) ->
-    [];
-normalizev6(<<A:8, B:8, Rest/binary>>) ->
-    [to_hex(A) ++ to_hex(B)] ++ normalizev6(Rest).
 
 list_to_hex_string([]) ->
     [];
