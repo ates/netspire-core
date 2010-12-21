@@ -75,6 +75,9 @@ decode_value(Bin, Length, ipaddr) ->
 decode_value(Bin, Length, ipv6addr) ->
     <<Value:Length/binary, Rest/binary>> = Bin,
     {netspire_util:ipconv(Value), Rest};
+decode_value(Bin, _Length, ipv6prefix) ->
+    <<_R:8, PrefixLen:8, IP/binary>> = Bin,
+    {string:join([netspire_util:ipconv(IP), integer_to_list(PrefixLen)], "/"), <<>>};
 decode_value(Bin, Length, _Type) ->
     decode_value(Bin, Length).
 
@@ -185,6 +188,11 @@ encode_value({A, B, C, D}, ipaddr) ->
     <<A:8, B:8, C:8, D:8>>;
 encode_value(IP, ipv6addr) ->
     netspire_util:ipconv(IP);
+encode_value(IP, ipv6prefix) ->
+    [Addr, PrefixLen] = string:tokens(IP, "/"),
+    BinAddr = netspire_util:ipconv(Addr),
+    Prefix = list_to_integer(PrefixLen),
+    list_to_binary([<<0:8>>, <<Prefix:8>>, BinAddr]);
 encode_value(Value, Type) ->
     ?WARNING_MSG("Unable to encode attribute value ~p as ~p~n", [Value, Type]),
     throw({error, encode}).
