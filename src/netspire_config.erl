@@ -1,7 +1,7 @@
 -module(netspire_config).
 -export([start/0, get_global_option/1, get_option/1]).
 
--define(NETSPIRE_CONFIG_PATH, "./netspire.conf").
+-define(NETSPIRE_CONFIG, "./netspire.conf").
 
 -include("netspire.hrl").
 
@@ -20,13 +20,13 @@ start() ->
                          {local_content, true},
                          {attributes, record_info(fields, config)}]),
     mnesia:add_table_copy(local_config, node(), ram_copies),
-    Config = case application:get_env(config) of
-        {ok, Path} -> Path;
-        undefined ->
-            case os:getenv("NETSPIRE_CONFIG_PATH") of
-                false -> ?NETSPIRE_CONFIG_PATH;
-                Path -> Path
-            end
+    Config = case os:getenv("NETSPIRE_CONFIG") of
+        false ->
+            case application:get_env(config) of
+                {ok, Path} -> Path;
+                undefined -> ?NETSPIRE_CONFIG
+            end;
+        Path -> Path
     end,
     load_file(Config).
 
