@@ -27,8 +27,8 @@ init(File, MaxSize, RotationInterval) ->
     case file:open(File, ?FILE_OPTIONS) of
         {ok, Fd} ->
             {ok, #state{fd = Fd, file = File}};
-        Error ->
-            ?ERROR_MSG("Can't open ~s: ~p", [File, Error])
+        {error, Reason} ->
+            ?ERROR_MSG("Can not open ~s due to ~s~n", [File, file:format_error(Reason)])
     end.
 
 handle_event(Event, State) ->
@@ -48,8 +48,8 @@ handle_info({check_log_size, File, Size}, State) ->
             case file:open(File, ?FILE_OPTIONS) of
                 {ok, Fd} ->
                     {ok, State#state{fd = Fd}};
-                Error ->
-                    ?ERROR_MSG("Can't open ~s: ~p", [File, Error])
+                {error, Reason} ->
+                    ?ERROR_MSG("Can not open ~s due to ~s~n", [File, file:format_error(Reason)])
             end;
         _ ->
             {ok, State}
