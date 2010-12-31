@@ -8,7 +8,6 @@
 -include("netspire.hrl").
 -include_lib("kernel/include/file.hrl").
 
--define(FILE_OPTIONS, [append, raw]).
 -record(state, {fd, file, max_size}).
 
 init(Opts) ->
@@ -20,7 +19,7 @@ init(Opts) ->
         Size when Size > 0 ->
             {ok, _T} = timer:send_interval(RotationInterval, self(), check_log_size)
     end,
-    case file:open(File, ?FILE_OPTIONS) of
+    case file:open(File, [append, raw]) of
         {ok, Fd} ->
             {ok, #state{fd = Fd, file = File, max_size = MaxSize}};
         {error, Reason} ->
@@ -38,18 +37,18 @@ handle_call(_Request, State) ->
 handle_info(check_log_size, State) ->
     case file:read_file_info(State#state.file) of
         {ok, FileInfo} when FileInfo#file_info.size >= State#state.max_size ->
-            file:close(State#state.fd),
-            rotate_log(State#state.file),
-
-            case file:open(State#state.file, ?FILE_OPTIONS) of
-                {ok, Fd} ->
-                    {ok, State#state{fd = Fd}};
+            NewName = filename:rootname(State#state.file) ++ timestamp_suffix() ++ ".log",
+            case file:copy(State#state.file, NewName) of
+                {ok, Bytes} when Bytes >= State#state.max_size ->
+                    {ok, 0} = file:position(State#state.fd, 0),
+                    ok = file:truncate(State#state.fd),
+                    ?INFO_MSG("The log file were rotated successful~n", []);
                 {error, Reason} ->
-                    ?ERROR_MSG("Can not open ~s due to ~s~n", [State#state.file, file:format_error(Reason)])
+                    ?ERROR_MSG("Can not rotate log file ~s due to ~s~n", [State#state.file, file:format_error(Reason)])
             end;
-        _ ->
-            {ok, State}
-    end;
+        _ -> ok
+    end,
+    {ok, State};
 
 handle_info({'EXIT', _Pid, shutdown}, _State) ->
     remove_handler;
@@ -164,11 +163,6 @@ write_time(Time) -> write_time(Time, "ERROR REPORT").
 write_time({{Y, Mo, D}, {H, Mi, S}}, Type) ->
     io_lib:format("~n=~s==== ~w-~.2.0w-~.2.0w ~.2.0w:~.2.0w:~.2.0w ===~n",
         [Type, Y, Mo, D, H, Mi, S]).
-
-rotate_log(File) ->
-    ?INFO_MSG("Rotating log file: ~s~n", [File]),
-    NewName = filename:rootname(File),
-    file:rename(File, [NewName, timestamp_suffix(), ".log"]).
 
 timestamp_suffix() ->
     DateTime = lists:flatten(localtime_to_string(erlang:localtime())),
