@@ -3,7 +3,6 @@
 NODE=netspire
 HOST=$(hostname -f)
 
-ERL=%%ERL%%
 # Starts the Erlang runtime system with SMP support (enable|auto|disable)
 SMP=auto
 # Path to store internal application state
@@ -57,7 +56,7 @@ stop() {
 }
 
 shell() {
-    $ERL -name netspire-remote -hidden -remsh $NODE@$HOST
+    %%ERL%% -name netspire-remote -hidden -remsh $NODE@$HOST
 }
 
 check_status() {
