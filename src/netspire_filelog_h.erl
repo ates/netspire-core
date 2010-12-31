@@ -9,24 +9,20 @@
 -include_lib("kernel/include/file.hrl").
 
 -define(FILE_OPTIONS, [append, raw]).
--record(state, {fd, file}).
+-record(state, {fd, file, max_size}).
 
 init(Opts) ->
     File = proplists:get_value(path, Opts, []),
     MaxSize = proplists:get_value(max_size, Opts, []),
     RotationInterval = proplists:get_value(rotation_interval, Opts, []),
-    init(File, MaxSize, RotationInterval).
-
-init(File, MaxSize, RotationInterval) ->
     case MaxSize of
         0 -> ok;
         Size when Size > 0 ->
-            {ok, _T} = timer:send_interval(RotationInterval, self(), 
-                {check_log_size, File, Size})
+            {ok, _T} = timer:send_interval(RotationInterval, self(), check_log_size)
     end,
     case file:open(File, ?FILE_OPTIONS) of
         {ok, Fd} ->
-            {ok, #state{fd = Fd, file = File}};
+            {ok, #state{fd = Fd, file = File, max_size = MaxSize}};
         {error, Reason} ->
             ?ERROR_MSG("Can not open ~s due to ~s~n", [File, file:format_error(Reason)])
     end.
@@ -39,17 +35,17 @@ handle_call(_Request, State) ->
     Reply = ok,
     {ok, Reply, State}.
 
-handle_info({check_log_size, File, Size}, State) ->
-    case file:read_file_info(File) of
-        {ok, FileInfo} when FileInfo#file_info.size > Size ->
+handle_info(check_log_size, State) ->
+    case file:read_file_info(State#state.file) of
+        {ok, FileInfo} when FileInfo#file_info.size >= State#state.max_size ->
             file:close(State#state.fd),
             rotate_log(State#state.file),
 
-            case file:open(File, ?FILE_OPTIONS) of
+            case file:open(State#state.file, ?FILE_OPTIONS) of
                 {ok, Fd} ->
                     {ok, State#state{fd = Fd}};
                 {error, Reason} ->
-                    ?ERROR_MSG("Can not open ~s due to ~s~n", [File, file:format_error(Reason)])
+                    ?ERROR_MSG("Can not open ~s due to ~s~n", [State#state.file, file:format_error(Reason)])
             end;
         _ ->
             {ok, State}
