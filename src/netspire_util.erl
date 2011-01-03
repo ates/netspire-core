@@ -1,6 +1,6 @@
 -module(netspire_util).
 
--export([ipconv/1, timestamp/0, to_hex/1, do_bxor/2, binary_to_hex_string/1, check_mac_addr/1]).
+-export([ipconv/1, timestamp/0, to_hex/1, do_bxor/2, binary_to_hex_string/1, is_macaddr/1]).
 
 -define(MAC_REGEXP, "^([0-9a-f]{2}([:-]|$)){6}$").
 
@@ -51,10 +51,10 @@ binary_to_hex_string(Bin) ->
     list_to_hex_string(binary_to_list(Bin)).
 
 % verify mac address syntax, : or - may be used as delimiter
-check_mac_addr(Address) ->
+is_macaddr(Address) ->
     case re:run(Address, ?MAC_REGEXP, [{capture, none}, caseless]) of
-        match -> ok;
-        _ -> {error, invalid_mac_format}
+        match -> true;
+        _ -> false
     end.
 
 %% Internal functions
