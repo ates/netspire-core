@@ -10,7 +10,7 @@ SPOOLDIR = $(DESTDIR)@localstatedir@/lib/netspire
 SBINDIR = $(DESTDIR)@sbindir@
 LOGDIR = $(DESTDIR)@localstatedir@/log/netspire
 ETCDIR = $(DESTDIR)@sysconfdir@/netspire
-PIDFILEDIR = $(DESTDIR)@localstatedir@/run/
+PIDFILEDIR = $(DESTDIR)@localstatedir@/run
 
 all: checks all-recursive
 	test -r netspire.app && cp netspire.app ebin
