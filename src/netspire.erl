@@ -1,7 +1,7 @@
 -module(netspire).
 -behaviour(application).
 
--export([start/2, stop/1]).
+-export([start/2, stop/1, uptime/0]).
 
 -include("netspire.hrl").
 
@@ -26,6 +26,10 @@ start(normal, _StartArgs) ->
 
 stop(_State) ->
     ?INFO_MSG("Application ~p has stopped~n", [?MODULE]).
+
+uptime() ->
+    {T, _} = erlang:statistics(wall_clock),
+    calendar:seconds_to_daystime(erlang:trunc(T / 1000)).
 
 %%
 %% Internal API
