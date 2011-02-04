@@ -1,4 +1,4 @@
-SUBDIRS = src/radius src src/modules src/netflow
+SUBDIRS = src/radius src src/modules src/netflow src/lib
 
 DESTDIR = @prefix@
 
