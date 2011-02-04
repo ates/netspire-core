@@ -99,8 +99,7 @@ override_global.
 
           {pools,
             [
-              %% You can define a range using only fourth octet
-              {main, [{"10.10.1.50", "10.10.1.100"}]}
+              {main, ["10.10.1.0/24", "192.168.1.130-192.168.1.140", "192.168.10.0/255.255.255.0"]}
             ]}
         ]}
   ]}.

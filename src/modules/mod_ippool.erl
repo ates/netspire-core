@@ -45,15 +45,12 @@ allocate(Pools) ->
 
 add_pool({Pool, Ranges}) ->
     lists:foreach(fun(Range) -> add_range(Pool, Range) end, Ranges).
-add_range(Pool, {First, Last} = _Range) ->
-    {ok, {I1, I2, I3, I4}} = inet_parse:address(First),
-    {ok, {_, _, _, I8}} = inet_parse:address(Last),
-    F = fun(N) ->
-                IP = {I1, I2, I3, N},
-                Rec = #ippool_entry{pool = Pool, ip = IP},
-                mnesia:dirty_write(ippool, Rec)
-        end,
-    lists:foreach(F, lists:seq(I4, I8)).
+add_range(Pool, Range) ->
+    F = fun(IP) ->
+            Rec = #ippool_entry{pool = Pool, ip = IP},
+            mnesia:dirty_write(ippool, Rec)
+    end,
+    lists:foreach(F, ip:range2list(Range)).
 
 lease(Pool) ->
     Timeout = gen_module:get_option(?MODULE, timeout, ?TIMEOUT),
