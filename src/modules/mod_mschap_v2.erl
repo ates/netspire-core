@@ -21,8 +21,7 @@ stop() ->
 
 verify_mschap_v2(_, Request, UserName, Password, Replies, Client) ->
     case radius:attribute_value("MS-CHAP-Challenge", Request) of
-        undefined ->
-            Request;
+        undefined -> undefined;
         ChapChallenge ->
             case radius:attribute_value("MS-CHAP2-Response", Request) of
                 undefined ->

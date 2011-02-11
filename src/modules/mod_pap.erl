@@ -21,8 +21,7 @@ stop() ->
 
 verify_pap(_, Request, UserName, Password, Replies, Client) ->
     case radius:attribute_value("Password", Request) of
-        undefined ->
-            Request;
+        undefined -> undefined;
         UserPassword ->
             Secret = Client#nas_spec.secret,
             Auth = Request#radius_packet.auth,

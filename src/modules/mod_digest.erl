@@ -27,7 +27,7 @@ verify_digest(_, Request, UserNameRealm, Password, Replies, _Client) ->
         undefined -> Request;
         DigestResponse ->
             case radius:attribute_value("Digest-Attributes", Request) of
-                undefined -> Request;
+                undefined -> undefined;
                 _Attrs ->
                     UserName = hd(string:tokens(UserNameRealm, "@")),
                     Nonce = digest_attribute_value("Digest-Nonce", Request),
