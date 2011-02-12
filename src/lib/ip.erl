@@ -77,7 +77,7 @@ in_range(Address, N) ->
     (ip2long(Address) band Mask) == (ip2long(Network) band Mask).
 
 bin_ipv6_to_string(Bin) when is_binary(Bin) andalso size(Bin) == 16 ->
-    List = bin_ipv6_to_string([integer_to_list(I, 16) || <<I:4>> <= Bin]),
+    List = bin_ipv6_to_string([erlang:integer_to_list(I, 16) || <<I:4>> <= Bin]),
     string:join(List, ":");
 bin_ipv6_to_string([]) -> [];
 bin_ipv6_to_string([A, B, C, D | Rest] = List) when is_list(List) ->
@@ -86,10 +86,10 @@ bin_ipv6_to_string([A, B, C, D | Rest] = List) when is_list(List) ->
 ipv6_to_binary(List) when is_list(List) ->
     case string:chr(List, $:) of
         0 ->
-            <<<<(list_to_integer([H], 16)):4>> || H <- List>>;
+            <<<<(erlang:list_to_integer([H], 16)):4>> || H <- List>>;
         _ ->
             FlatList = lists:flatten(string:tokens(List, ":")),
-            <<<<(list_to_integer([H], 16)):4>> || H <- FlatList>>
+            <<<<(erlang:list_to_integer([H], 16)):4>> || H <- FlatList>>
     end.
 
 % verify mac address syntax, : or - may be used as delimiter
