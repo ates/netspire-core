@@ -1,35 +1,6 @@
 -module(netspire_util).
 
--export([ipconv/1, timestamp/0, to_hex/1, do_bxor/2, binary_to_hex_string/1]).
-
-ipconv({A, B, C, D}) ->
-    <<I:4/big-integer-unit:8>> = <<A, B, C, D>>, I;
-
-% convert IPv6 address from Binary to List
-ipconv(Bin) when is_binary(Bin) andalso size(Bin) == 16 ->
-    [hd(erlang:integer_to_list(I, 16)) || <<I:4>> <= Bin];
-
-% convert IPv6 address from List to Binary
-ipconv(Address) when is_list(Address) ->
-    case string:chr(Address, $:) of
-        0 ->
-            <<<<(erlang:list_to_integer([H], 16)):4>> || H <- Address>>;
-        _ ->
-            <<<<(erlang:list_to_integer([H], 16)):4>> || H <- lists:flatten(string:tokens(Address, ":"))>>
-    end;
-
-ipconv(I) when is_integer(I) ->
-    A = (I div 16777216) rem 256,
-    B = (I div 65536) rem 256,
-    C = (I div 256) rem 256,
-    D = I rem 256,
-    {A, B, C, D};
-
-ipconv(IP) when is_list(IP) ->
-    case inet_parse:address(IP) of
-        {ok, Address} -> ipconv(Address);
-        Error -> Error
-    end.
+-export([timestamp/0, to_hex/1, do_bxor/2, binary_to_hex_string/1]).
 
 timestamp() ->
     {MegaSecs, Secs, _} = erlang:now(),
