@@ -2,7 +2,8 @@
 -module(ip).
 
 -export([ip2long/1, long2ip/1, ipv4_to_ipv6/1, broadcast/1, number_of_hosts/1,
-         range/1, range2list/1, in_range/2, is_ipv4_mapped/1]).
+         range/1, range2list/1, in_range/2, is_ipv4_mapped/1,
+         bin_ipv6_to_string/1, ipv6_to_binary/1]).
 
 -include_lib("eunit/include/eunit.hrl").
 
@@ -73,6 +74,22 @@ in_range(Address, N) ->
     {Network, Mask} = parse_address(N),
     (ip2long(Address) band Mask) == (ip2long(Network) band Mask).
 
+bin_ipv6_to_string(Bin) when is_binary(Bin) andalso size(Bin) == 16 ->
+    List = bin_ipv6_to_string([integer_to_list(I, 16) || <<I:4>> <= Bin]),
+    string:join(List, ":");
+bin_ipv6_to_string([]) -> [];
+bin_ipv6_to_string([A, B, C, D | Rest] = List) when is_list(List) ->
+   [lists:flatten([A, B, C, D])] ++ bin_ipv6_to_string(Rest).
+
+ipv6_to_binary(List) when is_list(List) ->
+    case string:chr(List, $:) of
+        0 ->
+            <<<<(list_to_integer([H], 16)):4>> || H <- List>>;
+        _ ->
+            FlatList = lists:flatten(string:tokens(List, ":")),
+            <<<<(list_to_integer([H], 16)):4>> || H <- FlatList>>
+    end.
+
 %%
 %% Internal functions
 %%
@@ -137,3 +154,9 @@ in_range_test() ->
     ?assert(in_range("192.168.1.10", "192.168.1.0/22") =:= true),
     ?assert(in_range("192.168.7.10", "192.168.1.0/22") =:= false),
     ?assert(in_range("192.168.1.10", "192.168.1.0/255.255.255.0") =:= true).
+
+bin_ipv6_to_string_test() ->
+    Bin = <<222,173,190,175,0,0,0,0,0,0,0,0,0,0,0,1>>,
+    IPv6 = "DEAD:BEAF:0000:0000:0000:0000:0000:0001",
+    ?assert(bin_ipv6_to_string(Bin) =:= IPv6),
+    ?assert(ipv6_to_binary(IPv6) =:= Bin).
