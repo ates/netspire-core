@@ -3,9 +3,11 @@
 
 -export([ip2long/1, long2ip/1, ipv4_to_ipv6/1, broadcast/1, number_of_hosts/1,
          range/1, range2list/1, in_range/2, is_ipv4_mapped/1,
-         bin_ipv6_to_string/1, ipv6_to_binary/1]).
+         bin_ipv6_to_string/1, ipv6_to_binary/1, is_macaddr/1]).
 
 -include_lib("eunit/include/eunit.hrl").
+
+-define(MAC_REGEXP, "^([0-9a-f]{2}([:-]|$)){6}$").
 
 ip2long(IP) when is_integer(IP) -> IP;
 ip2long(IP) when is_list(IP) ->
@@ -90,6 +92,13 @@ ipv6_to_binary(List) when is_list(List) ->
             <<<<(list_to_integer([H], 16)):4>> || H <- FlatList>>
     end.
 
+% verify mac address syntax, : or - may be used as delimiter
+is_macaddr(Address) ->
+    case re:run(Address, ?MAC_REGEXP, [{capture, none}, caseless]) of
+        match -> true;
+        _ -> false
+    end.
+
 %%
 %% Internal functions
 %%
@@ -160,3 +169,10 @@ bin_ipv6_to_string_test() ->
     IPv6 = "DEAD:BEAF:0000:0000:0000:0000:0000:0001",
     ?assert(bin_ipv6_to_string(Bin) =:= IPv6),
     ?assert(ipv6_to_binary(IPv6) =:= Bin).
+
+is_macaddr_test() ->
+    ?assert(is_macaddr("AB:CD:EF:00:11:22") =:= true),
+    ?assert(is_macaddr("AB-CD-EF-00-11-22") =:= true),
+    ?assert(is_macaddr("ab:cd:ef:00:11:22") =:= true),
+    ?assert(is_macaddr("ab-cd-ef-00-11-22") =:= true),
+    ?assert(is_macaddr("ab-cz-ef-00-110-22") =:= false).
