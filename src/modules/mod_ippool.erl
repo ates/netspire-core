@@ -59,15 +59,29 @@ lease(Pool) ->
     MatchHead = #ippool_entry{ip = '$1', pool = Pool, expires_at = '$3'},
     MatchSpec = [{MatchHead, [{'=<', '$3', Now}], ['$1']}],
     F = fun() ->
-                case mnesia:select(ippool, MatchSpec, 1, write) of
-                    '$end_of_table' ->
-                        {error, empty};
-                    {[IP], _} ->
-                        Rec = #ippool_entry{ip = IP, pool = Pool, expires_at = ExpiresAt},
-                        mnesia:write(ippool, Rec, write),
-                        {ok, IP}
-                end
-        end,
+            case mnesia:select(ippool, MatchSpec, 1, write) of
+                '$end_of_table' ->
+                    case gen_module:get_option(?MODULE, use_another_one_free_pool) of
+                        yes ->
+                            MatchHead1 = #ippool_entry{ip = '_', pool = '$1', expires_at = 0},
+                            MatchSpec1 = [{MatchHead1, [], ['$1']}],
+                            FreePools = mnesia:dirty_select(ippool, MatchSpec1),
+                            try
+                                FreePool = lists:nth(1, FreePools),
+                                lease(FreePool)
+                            catch
+                                _:_ ->
+                                    {error, empty}
+                            end;
+                        _ ->
+                            {error, empty}
+                    end;
+                {[IP], _} ->
+                    Rec = #ippool_entry{ip = IP, pool = Pool, expires_at = ExpiresAt},
+                    mnesia:write(ippool, Rec, write),
+                    {ok, IP}
+            end
+    end,
     case mnesia:transaction(F) of
         {atomic, Result} ->
             Result;
