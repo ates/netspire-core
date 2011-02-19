@@ -113,14 +113,37 @@ encode_response(Request, Response, Secret) ->
     Code = <<C:8>>,
     Ident = Request#radius_packet.ident,
     ReqAuth = Request#radius_packet.auth,
-    case encode_attributes(A) of
-        {ok, Attrs} ->
-            Length = <<(20 + byte_size(Attrs)):16>>,
-            Auth = crypto:md5([Code, Ident, Length, ReqAuth, Attrs, Secret]),
-            Data = list_to_binary([Code, Ident, Length, Auth, Attrs]),
-            {ok, Data};
-        _ ->
-            {error, invalid}
+    case attribute_value("EAP-Message", A) of
+        undefined ->
+            case encode_attributes(A) of
+                {ok, Attrs} ->
+                    Length = <<(20 + byte_size(Attrs)):16>>,
+                    Auth = crypto:md5([Code, Ident, Length, ReqAuth, Attrs, Secret]),
+                    Data = list_to_binary([Code, Ident, Length, Auth, Attrs]),
+                    {ok, Data};
+                _ ->
+                    {error, invalid}
+            end;
+        _Value ->
+            try
+                A1 = A ++ [{"Message-Authenticator", <<0:128>>}],
+                {ok, A2} = encode_attributes(A1),
+
+                Length = <<(20 + byte_size(A2)):16>>,
+
+                Packet = list_to_binary([Code, Ident, Length, ReqAuth, A2]),
+                MA = crypto:md5_mac(Secret, Packet),
+
+                A3 = A ++ [{"Message-Authenticator", MA}],
+                {ok, A4} = encode_attributes(A3),
+
+                Auth = crypto:md5([Code, Ident, Length, ReqAuth, A4, Secret]),
+                Data = list_to_binary([Code, Ident, Length, Auth, A4]),
+                {ok, Data}
+            catch
+                _:_ ->
+                    {error, invalid}
+            end
     end.
 
 encode_attributes(Attrs) ->

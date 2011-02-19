@@ -67,7 +67,7 @@ handle_info({udp, Socket, SrcIP, SrcPort, Bin}, State) ->
             case request_exists(SrcIP, SrcPort, Packet) of
                 false ->
                     Pid = spawn_link(fun() ->
-                                             handle_packet(SrcIP, SrcPort, Socket, Packet, State)
+                                        handle_packet(SrcIP, SrcPort, Socket, Packet, State)
                                      end),
                     store_request(SrcIP, SrcPort, Packet, Pid),
                     inet:setopts(Socket, [{active, once}]),
