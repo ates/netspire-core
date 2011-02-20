@@ -7,20 +7,35 @@
 -include("radius.hrl").
 -include("../netspire.hrl").
 
--export([decode_packet/1,
+-export([decode_packet/2,
          encode_response/3,
          encode_attributes/1,
          identify_packet/1,
          attribute_value/2]).
 
-decode_packet(Bin) ->
+decode_packet(Bin, Secret) ->
     try
         <<?RADIUS_PACKET>> = Bin,
         case byte_size(Attrs) >= (Length - 20) of
             true ->
                 A = decode_attributes(Attrs, []),
                 Packet = #radius_packet{code = Code, ident = Ident, auth = Auth, attrs = A},
-                {ok, Packet};
+                case attribute_value("Message-Authenticator", A) of
+                    undefined ->
+                        {ok, Packet};
+                    Value ->
+                        A1 = A -- [{"Message-Authenticator", Value}],
+                        A2 = A1 ++ [{"Message-Authenticator", <<0:128>>}],
+                        {ok, A3} = encode_attributes(A2),
+                        Packet1 = [Code, Ident, <<Length:16>>, Auth, A3],
+                        case crypto:md5_mac(Secret, Packet1) =:= Value of
+                            true ->
+                                {ok, Packet};
+                            false ->
+                                ?WARNING_MSG("Invalid Message-Authenticator~n", []),
+                                {error, invalid}
+                        end
+                end;
             false ->
                 {error, invalid}
         end
