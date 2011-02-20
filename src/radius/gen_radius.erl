@@ -62,23 +62,29 @@ handle_cast(_Msg, State) ->
     {noreply, State}.
 
 handle_info({udp, Socket, SrcIP, SrcPort, Bin}, State) ->
-    case radius:decode_packet(Bin) of
-        {ok, Packet} ->
-            case request_exists(SrcIP, SrcPort, Packet) of
-                false ->
-                    Pid = spawn_link(fun() ->
-                                        handle_packet(SrcIP, SrcPort, Socket, Packet, State)
+    case lookup_client(SrcIP, State#state.clients) of
+        {ok, Client} ->
+            case radius:decode_packet(Bin, Client#nas_spec.secret) of
+                {ok, Packet} ->
+                    case request_exists(SrcIP, SrcPort, Packet) of
+                        false ->
+                            Pid = spawn_link(fun() ->
+                                        do_callback(SrcIP, SrcPort, Socket, Client, Packet)
                                      end),
-                    store_request(SrcIP, SrcPort, Packet, Pid),
-                    inet:setopts(Socket, [{active, once}]),
-                    {noreply, State};
-                true ->
+                            store_request(SrcIP, SrcPort, Packet, Pid),
+                            inet:setopts(Socket, [{active, once}]),
+                            {noreply, State};
+                        true ->
+                            inet:setopts(Socket, [{active, once}]),
+                            {noreply, State}
+                    end;
+                {error, invalid} ->
+                    ?WARNING_MSG("Invalid packet from NAS: ~s~n", [inet_parse:ntoa(SrcIP)]),
                     inet:setopts(Socket, [{active, once}]),
                     {noreply, State}
             end;
-        {error, invalid} ->
-            ?WARNING_MSG("Invalid packet from NAS: ~s~n", [inet_parse:ntoa(SrcIP)]),
-            inet:setopts(Socket, [{active, once}]),
+        undefined ->
+            ?WARNING_MSG("Request from unknown client: ~s~n", [inet_parse:ntoa(SrcIP)]),
             {noreply, State}
     end;
 handle_info({'EXIT', _Pid, normal}, State) ->
@@ -92,14 +98,6 @@ terminate(_Reason, State) ->
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
-
-handle_packet(SrcIP, SrcPort, Socket, Packet, State) ->
-    case lookup_client(SrcIP, State#state.clients) of
-        {ok, Client} ->
-            do_callback(SrcIP, SrcPort, Socket, Client, Packet);
-        undefined ->
-            ?WARNING_MSG("Request from unknown client: ~s~n", [inet_parse:ntoa(SrcIP)])
-    end.
 
 do_callback(IP, Port, Socket, Client, Packet) ->
     case radius:identify_packet(Packet#radius_packet.code) of
