@@ -46,7 +46,7 @@ do_auth(Request, Password, Replies, Context, Client) ->
         {challenge, NewReplies} ->
             do_access_challenge(Request, NewReplies, Context, Client);
         _Any ->
-            do_access_reject(Request, [], Context, Client)
+            noreply
     end.
 
 do_access_accept(Request, Replies, Context, Client) ->
