@@ -15,3 +15,5 @@ ATTRIBUTE   Netspire-Upstream-Speed-Limit-2         6   integer     Netspire
 ATTRIBUTE   Netspire-Downstream-Speed-Limit-2       7   integer     Netspire
 ATTRIBUTE   Netspire-Upstream-Speed-Limit-3         8   integer     Netspire
 ATTRIBUTE   Netspire-Downstream-Speed-Limit-3       9   integer     Netspire
+
+ATTRIBUTE   Netspire-Allowed-NAS                    10  string      Netspire
