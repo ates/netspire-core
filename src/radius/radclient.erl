@@ -77,7 +77,7 @@ waiting_for_reply() ->
     receive
         {udp, Socket, _IP, _InPortNo, Bin} ->
             gen_udp:close(Socket),
-            case radius:decode_packet(Bin) of
+            case radius:decode_packet(Bin, "") of
                 {ok, Packet} ->
                     {ok, Packet};
                 {error, Reason} ->
