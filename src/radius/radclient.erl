@@ -42,7 +42,7 @@ request(disconnect, IP, Secret, Attrs) ->
         {ok, Reply} ->
             case Reply#radius_packet.code of
                 ?DISCONNECT_ACK -> {ok, Reply#radius_packet.attrs};
-                ?DISCONNECT_NAK -> {failed, Reply#radius_packet.attrs}
+                ?DISCONNECT_NAK -> {error, Reply#radius_packet.attrs}
             end;
         Error -> Error
     end;
@@ -52,7 +52,7 @@ request(coa, IP, Secret, Attrs) ->
         {ok, Reply} ->
             case Reply#radius_packet.code of
                 ?COA_ACK -> {ok, Reply#radius_packet.attrs};
-                ?COA_NAK -> {failed, Reply#radius_packet.attrs}
+                ?COA_NAK -> {error, Reply#radius_packet.attrs}
             end;
         Error -> Error
     end.
