@@ -21,7 +21,6 @@ start(normal, _StartArgs) ->
     end,
     start_services(),
     start_modules(),
-    write_pidfile(),
     Sup.
 
 stop(_State) ->
@@ -34,18 +33,6 @@ uptime() ->
 %%
 %% Internal API
 %%
-write_pidfile() ->
-    case init:get_argument(pidfile) of
-        {ok, [PidFile]} ->
-            case file:write_file(PidFile, os:getpid()) of
-                ok -> ok;
-                {error, Reason} ->
-                    ?WARNING_MSG("Failed to write PID file ~s: ~s~n",
-                        [PidFile, file:format_error(Reason)])
-            end;
-        _ -> ok
-    end.
-
 start_services() ->
     Fun = fun({Module, Options}) ->
                 Module:start(Options)

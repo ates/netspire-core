@@ -13,8 +13,6 @@ NETSPIRE_EBIN=%%BEAMDIR%%
 NETSPIRE_CONFIG=%%NETSPIRE_CONFIG%%
 # Path to netspire logs
 NETSPIRE_LOG=%%NETSPIRE_LOG%%
-# Path to PID file
-NETSPIRE_PIDFILE=%%PIDFILE%%
 
 ERL_CRASH_DUMP=$NETSPIRE_LOG/erl_crash.dump
 export ERL_CRASH_DUMP
@@ -25,13 +23,6 @@ start() {
     done
     [ ! -f $NETSPIRE_CONFIG ] &&
         echo "Configuration file does not exists" && exit 1
-    if [ -r $NETSPIRE_PIDFILE ]; then
-        kill -0 `cat $NETSPIRE_PIDFILE` 2> /dev/null
-        if [ $? = 0 ]; then
-            echo "Netspire already started"
-            exit 1
-        fi
-    fi
     echo "Starting Netspire"
     %%ERL%% +W w \
         -noinput -detached \
@@ -40,7 +31,6 @@ start() {
         -pa $NETSPIRE_EBIN \
         -mnesia dir "\"$NETSPIRE_DB\"" \
         -netspire config \"$NETSPIRE_CONFIG\" \
-        -pidfile $NETSPIRE_PIDFILE \
         -eval 'application:start(netspire).'
 }
 
@@ -52,25 +42,15 @@ stop() {
         -noshell \
         -noinput \
         -nohidden
-    rm -f $NETSPIRE_PIDFILE
 }
 
 shell() {
     %%ERL%% -name netspire-remote -hidden -remsh $NODE@$HOST
 }
 
-check_status() {
-    if [ -r $NETSPIRE_PIDFILE ]; then
-        kill -0 `cat $NETSPIRE_PIDFILE` 2>/dev/null && \
-            echo "Started" || echo "Stopped"
-    else
-        echo "Stopped"
-    fi
-}
-
 usage()
 {
-    echo "usage: $0 {start|stop|status|shell}"
+    echo "usage: $0 {start|stop|shell}"
     exit 1
 }
 
@@ -81,8 +61,6 @@ case $1 in
         start;;
     stop)
         stop;;
-    status)
-        check_status;;
     shell)
         shell;;
     *) usage;;
