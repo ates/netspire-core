@@ -60,7 +60,7 @@ init_mnesia() ->
     Nodes = case net_adm:host_file() of
         {error, _} -> [];
         _ ->
-            lists:filter(fun(N) -> N /= node() end, net_adm:world())
+            [N || N <- net_adm:world(), N =/= node()]
     end,
     case Nodes of
         [] ->

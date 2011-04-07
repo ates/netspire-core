@@ -88,8 +88,7 @@ do_digest(HA1, Nonce, CNonce, Request) ->
 
 digest_attribute_value(Name, Request) ->
     Attrs = Request#radius_packet.attrs,
-    F = fun(A) -> parse_digest_attr(A) end,
-    A = lists:filter(fun(E) -> E /= undefined end, lists:map(F, Attrs)),
+    A = [parse_digest_attr(A) || A <- Attrs, A =/= undefined],
     proplists:get_value(Name, A).
 
 parse_digest_attr({"Digest-Attributes", Value}) ->

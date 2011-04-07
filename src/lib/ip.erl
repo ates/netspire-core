@@ -21,7 +21,7 @@ ip2long({W7, W6, W5, W4, W3, W2, W1, W0}) ->
     (W7 bsl 112) bor (W6 bsl 96) bor (W5 bsl 80) bor (W4 bsl 64) bor (W3 bsl 48) bor (W2 bsl 32) bor (W1 bsl 16) bor W0.
 
 % Limitation: support only IPv4
-long2ip(IP) when is_integer(IP) andalso IP =< 4294967295 ->
+long2ip(IP) when IP =< 4294967295 ->
     {(IP div 16777216) rem 256, (IP div 65536) rem 256, (IP div 256) rem 256, IP rem 256}.
 
 ipv4_to_ipv6(Address) when is_list(Address) ->
@@ -63,20 +63,20 @@ range2list(Address) when is_list(Address) ->
                 {ok, {I1, I2, I3, I4}} = inet_parse:address(First),
                 {ok, {I5, I6, I7, I8}} = inet_parse:address(Last),
                 {I1, I2, I3} = {I5, I6, I7},
-                lists:map(fun(I) -> {I1, I2, I3, I} end, lists:seq(I4, I8))
+                [{I1, I2, I3, I} || I <- lists:seq(I4, I8)]
             catch
                 _:_ -> []
             end;
         _ ->
             {F, L} = range(Address),
-            lists:map(fun(I) -> long2ip(I) end, lists:seq(ip2long(F), ip2long(L)))
+            [long2ip(I) || I <- lists:seq(ip2long(F), ip2long(L))]
     end.
 
 in_range(Address, N) ->
     {Network, Mask} = parse_address(N),
     (ip2long(Address) band Mask) == (ip2long(Network) band Mask).
 
-bin_ipv6_to_string(Bin) when is_binary(Bin) andalso size(Bin) == 16 ->
+bin_ipv6_to_string(Bin) when byte_size(Bin) =:= 16 ->
     List = bin_ipv6_to_string([erlang:integer_to_list(I, 16) || <<I:4>> <= Bin]),
     string:join(List, ":");
 bin_ipv6_to_string([]) -> [];

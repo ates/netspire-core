@@ -73,8 +73,7 @@ parse_line(["ATTRIBUTE", Name, Code, Type]) ->
 parse_line(["ATTRIBUTE", Name, Code, Type, Extra]) ->
     case get({vendor, Extra}) of
         undefined ->
-            T = string:tokens(Extra, ","),
-            Opts = lists:map(fun(I) -> parse_option(string:tokens(I, "=")) end, T),
+            Opts = [parse_option(string:tokens(I, "=")) || I <- string:tokens(Extra, ",")],
             A = #attribute{name = Name, code = list_to_integer(Code), type = list_to_atom(Type)},
             {attribute, A#attribute{opts = Opts}};
         Vendor ->
