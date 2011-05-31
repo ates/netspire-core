@@ -50,7 +50,7 @@ add_range(Pool, Range) ->
             Rec = #ippool_entry{pool = Pool, ip = IP},
             mnesia:dirty_write(ippool, Rec)
     end,
-    lists:foreach(F, ip:range2list(Range)).
+    lists:foreach(F, iplib:range2list(Range)).
 
 lease(Pool) ->
     Timeout = gen_module:get_option(?MODULE, timeout, ?TIMEOUT),

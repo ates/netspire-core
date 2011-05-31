@@ -1,4 +1,4 @@
-SUBDIRS = src/radius src src/modules src/netflow src/lib
+SUBDIRS = src/radius src src/modules src/netflow
 
 DESTDIR = @prefix@
 
@@ -41,13 +41,14 @@ install: all
 		-e 's!%%SPOOLDIR%%!$(SPOOLDIR)!g' \
 		-e 's!%%BEAMDIR%%!$(BEAMDIR)!g' \
 		-e 's!%%ERL%%!@ERL@!g' \
-		-e 's!%%NETSPIRE_LOG%%!$(LOGDIR)!g' \
+		-e 's!%%NETSPIRE_LOG%%!$(LOGDIR)/netspire.log!g' \
 		-e 's!%%NETSPIRE_CONFIG%%!$(ETCDIR)/netspire.conf!g'
 	install -m 755 netspirectl $(SBINDIR)
 
 run: all
-	@ERL@ -pa ebin -mnesia dir \"/tmp/netspire\" -netspire config \"netspire.conf\" \
-		-sname netspire -eval 'application:start(netspire).'
+	@ERL@ -pa ebin -mnesia dir \"/tmp/netspire\" -sname netspire \
+		-netspire config \"netspire.conf\" -netspire logfile \"/tmp/netspire.log\" \
+		-eval 'application:start(netspire).'
 
 clean: clean-recursive
 	rm -f erl_crash.dump netspirectl

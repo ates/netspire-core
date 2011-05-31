@@ -2,108 +2,90 @@
 %%% Netspire sample configuration file
 %%%
 
-%%
-%% Override local options specific for particular node
-%%
-override_local.
-
-%%
-%% Override global options shared by all nodes in a cluster
-%%
-override_global.
-
-%% Logging options
-{logging, {netspire_filelog_h, [
-  {path, "/tmp/netspire.log"},
-  {rotation_interval, 600},
-  {max_size, 10485760}
-]}}.
-
-%% Code path to load modules from
+%% The list of the directories where additional modules are located
 {code_path, []}.
 
 %%
-%% Available services with options
+%% Services
 %%
-{services,
-    [
-        %% NetFlow gathering service
-        {netspire_netflow,
-          [
-            %% Bind socket to special address.
-            %% Specify inet6 instead of inet for IPv6 address family.
-            {listen, {inet, "0.0.0.0", 9999}}
-          ]},
+{services, [
+    %% NetFlow gathering service
+    {netspire_netflow, [
+        %% Bind socket to special address.
+        %% Specify inet6 instead of inet for IPv6 address family.
+        {listen, {inet, "0.0.0.0", 9999}}
+    ]},
 
-        %% RADIUS service
-        {netspire_radius,
-          [
-            {listen,
-              [
-                {auth, {inet, "0.0.0.0", 1812}},
-                {acct, {inet, "0.0.0.0", 1813}}
-              ]},
+    %% RADIUS service
+    {netspire_radius, [
+        {listen, [
+            {auth, {inet, "0.0.0.0", 1812}},
+            {acct, {inet, "0.0.0.0", 1813}}
+        ]},
 
-            %% Service bindings
-            {auth,
-              [
-                %% List of NAS'es that will be allowed to send
-                %% requests to this RADIUS listener
-                {client, {pptpd1, "127.0.0.1", "testing123"}},
-                {client, {pptpd2, "10.10.0.1", "testing123"}}
+        %% Service bindings
+        {auth, [
+            %% The list of NAS'es that will be allowed to send
+            %% requests to this RADIUS listener
+            {client, {pptpd1, "127.0.0.1", "testing123"}},
+            {client, {pptpd2, "10.10.0.1", "testing123"}}
 
-                %% Other options defined here will be passed to
-                %% backend, so custom implementations can handle
-                %% them their own way
-              ]},
-            {acct,
-              [
-                {client, {pptpd1, "127.0.0.1", "testing123"}}
-              ]}
-          ]}
-    ]}.
+            %% Other options defined here will be passed to
+            %% backend, so custom implementations can handle
+            %% them their own way
+        ]},
+
+        {acct, [
+            {client, {pptpd1, "127.0.0.1", "testing123"}},
+            {client, {pptpd2, "10.10.0.1", "testing123"}}
+        ]}
+    ]}
+]}.
 
 %%
-%% List of modules which will be loaded dynamically
+%% Dynamic modules
 %%
-{modules,
-  [
-      %% RADIUS PAP auth type
-      {mod_pap, []},
+{modules, [
+    %% RADIUS PAP auth type
+    {mod_pap, []},
 
-      %% RADIUS CHAP auth type
-      {mod_chap, []},
+    %% RADIUS CHAP auth type
+    {mod_chap, []},
 
-      %% RADIUS Digest auth type
-      {mod_digest, []},
+    %% RADIUS Digest auth type
+    {mod_digest, []},
 
-      %% RADIUS MS-CHAP-V2 auth type
-      {mod_mschap_v2, [
+    %% RADIUS MS-CHAP-V2 auth type
+    {mod_mschap_v2, [
         {use_mppe, no}, {require_encryption, yes}, {require_strong, yes}
-      ]},
+    ]},
 
-      % RPC service
-      {mod_rpc, [{listen, {inet, "0.0.0.0", 9876}}]},
+    %% RPC service
+    {mod_rpc, [
+        {listen, {inet, "0.0.0.0", 9876}}
+    ]},
 
-      %% Pool of IP addresses
-      {mod_ippool,
-        [
-          %% Reset pool on every application start
-          {allocate, true},
+    %% Pool of IP addresses
+    {mod_ippool, [
+        %% Reset pool on every application start
+        {allocate, true},
 
-          %% Default pool name (used if Netspire-Framed-Pool RADIUS reply is missing)
-          {default, main},
+        %% Default pool name (used if Netspire-Framed-Pool RADIUS reply is missing)
+        {default, main},
 
-          %% IP expiration time, depends on session timeout
-          {timeout, 180},
+        %% IP expiration time, depends on session timeout
+        {timeout, 180},
 
-          %% Use another one free pool of the IP addresses
-          %% if default or defined pool in Netspire-Framed-Pool attribute has no free addresses
-          {use_another_one_free_pool, no},
+        %% Use another one free pool of the IP addresses
+        %% if default or defined pool in Netspire-Framed-Pool attribute has no free addresses
+        {use_another_one_free_pool, no},
 
-          {pools,
-            [
-              {main, ["10.10.1.0/24", "192.168.1.130-192.168.1.140", "192.168.10.0/255.255.255.0"]}
+        {pools, [
+            {main, [
+                "10.10.1.0/24",
+                "192.168.1.130-192.168.1.140",
+                "192.168.10.0/255.255.255.0"
             ]}
         ]}
-  ]}.
+    ]}
+]}.

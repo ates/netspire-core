@@ -1,5 +1,5 @@
 %%% IP address's manipulation routines
--module(ip).
+-module(iplib).
 
 -export([ip2long/1, long2ip/1, ipv4_to_ipv6/1, broadcast/1, number_of_hosts/1,
          range/1, range2list/1, in_range/2, is_ipv4_mapped/1,

@@ -62,14 +62,14 @@ init([Options]) ->
         {ok, {StrIP, Port, SocketOpts}} ->
             case gen_udp:open(Port, SocketOpts) of
                 {ok, Socket} ->
-                    ?INFO_MSG("Starting service ~p on ~s:~p~n", [?MODULE, StrIP, Port]),
+                    ?INFO_MSG("Starting netflow service on ~s:~p~n", [StrIP, Port]),
                     netflow_v9:init(),
                     {ok, #state{socket = Socket, port = Port}};
                 {error, Reason} ->
                     {stop, Reason}
             end;
         {error, Reason} ->
-            ?ERROR_MSG("Invalid options for Netflow listener: ~p~n", [Options]),
+            ?ERROR_MSG("Cannot start netflow service due to invalid options: ~p~n", [Options]),
             {stop, Reason}
     end.
 

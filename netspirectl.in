@@ -3,15 +3,9 @@
 NODE=netspire
 HOST=$(hostname -f)
 
-# Starts the Erlang runtime system with SMP support (enable|auto|disable)
-SMP=auto
-# Path to store internal application state
 NETSPIRE_DB=%%SPOOLDIR%%
-# Path to "ebin" directory of your Netspire installation
 NETSPIRE_EBIN=%%BEAMDIR%%
-# Path to netspire.conf file
 NETSPIRE_CONFIG=%%NETSPIRE_CONFIG%%
-# Path to netspire logs
 NETSPIRE_LOG=%%NETSPIRE_LOG%%
 
 ERL_CRASH_DUMP=$NETSPIRE_LOG/erl_crash.dump
@@ -26,11 +20,11 @@ start() {
     echo "Starting Netspire"
     %%ERL%% +W w \
         -noinput -detached \
-        -smp $SMP \
         -name $NODE@$HOST \
         -pa $NETSPIRE_EBIN \
         -mnesia dir "\"$NETSPIRE_DB\"" \
         -netspire config \"$NETSPIRE_CONFIG\" \
+        -netspire logfile \"$NETSPIRE_LOG\" \
         -eval 'application:start(netspire).'
 }
 
@@ -48,8 +42,7 @@ shell() {
     %%ERL%% -name netspire-remote -hidden -remsh $NODE@$HOST
 }
 
-usage()
-{
+usage() {
     echo "usage: $0 {start|stop|shell}"
     exit 1
 }

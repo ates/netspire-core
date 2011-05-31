@@ -14,6 +14,5 @@ AC_CONFIG_FILES([src/Makefile])
 AC_CONFIG_FILES([src/modules/Makefile])
 AC_CONFIG_FILES([src/netflow/Makefile])
 AC_CONFIG_FILES([src/radius/Makefile])
-AC_CONFIG_FILES([src/lib/Makefile])
 
 AC_OUTPUT

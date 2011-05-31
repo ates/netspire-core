@@ -1,8 +1,6 @@
 ebin
 *.conf
 *.log
-priv/obj/*.o
-priv/lib/*.so
 Makefile
 configure
 config.status

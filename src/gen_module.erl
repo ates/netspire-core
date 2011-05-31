@@ -25,8 +25,7 @@ behaviour_info(_) ->
 
 start() ->
     ?INFO_MSG("Starting module ~p~n", [?MODULE]),
-    ets:new(?MODULES_TABLE, [named_table, public, {keypos, 2}]),
-    ok.
+    ets:new(?MODULES_TABLE, [named_table, public, {keypos, 2}]).
 
 start_module(Module, Options) ->
     case ets:lookup(?MODULES_TABLE, Module) of
@@ -63,11 +62,9 @@ safely_stop_module(Module) ->
             ok;
         {wait, Process} ->
             wait_for_process(Process),
-            ets:delete(?MODULES_TABLE, Module),
-            ok;
+            ets:delete(?MODULES_TABLE, Module);
         _ ->
-            ets:delete(?MODULES_TABLE, Module),
-            ok
+            ets:delete(?MODULES_TABLE, Module)
     catch
         exit:Reason ->
             ?ERROR_MSG("Error while stopping module due to ~p", [Reason]),
@@ -89,8 +86,7 @@ wait_for_process(Process) ->
 
 wait_for_stop(Process, MonRef) ->
     receive
-        {'DOWN', MonRef, _Type, _Object, _Info} ->
-            ok
+        {'DOWN', MonRef, _Type, _Object, _Info} -> ok
     after 5000 ->
             catch exit(whereis(Process), kill),
             wait_for_kill(MonRef)
@@ -98,10 +94,8 @@ wait_for_stop(Process, MonRef) ->
 
 wait_for_kill(MonRef) ->
     receive
-        {'DOWN', MonRef, _Type, _Object, _Info} ->
-            ok
-    after 5000 ->
-            ok
+        {'DOWN', MonRef, _Type, _Object, _Info} -> ok
+    after 5000 -> ok
     end.
 
 get_option(Module, Name) ->
