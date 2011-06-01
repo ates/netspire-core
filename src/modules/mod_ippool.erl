@@ -164,6 +164,5 @@ release_framed_ip(Request) ->
 
 
 stop() ->
-    ?INFO_MSG("Stop dynamic module ~p~n", [?MODULE]),
+    ?INFO_MSG("Stopping dynamic module ~p~n", [?MODULE]),
     netspire_hooks:delete_all(?MODULE).
-

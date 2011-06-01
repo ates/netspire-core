@@ -29,7 +29,7 @@ start(Options) ->
     supervisor:start_child(netspire_sup, ChildSpec).
 
 stop() ->
-    ?INFO_MSG("Stop dynamic module ~p~n", [?MODULE]),
+    ?INFO_MSG("Stopping dynamic module ~p~n", [?MODULE]),
     gen_server:call(?MODULE, stop),
     supervisor:terminate_child(netspire_sup, ?MODULE),
     supervisor:delete_child(netspire_sup, ?MODULE).

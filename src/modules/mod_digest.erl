@@ -19,7 +19,7 @@ start(_Options) ->
     netspire_hooks:add(radius_auth, ?MODULE, verify_digest).
 
 stop() ->
-    ?INFO_MSG("Stop dynamic module ~p~n", [?MODULE]),
+    ?INFO_MSG("Stopping dynamic module ~p~n", [?MODULE]),
     netspire_hooks:delete(radius_auth, ?MODULE, verify_digest).
 
 verify_digest(_, Request, UserNameRealm, Password, Replies, _Client) ->
@@ -113,4 +113,3 @@ parse_digest_attr({"Digest-Attributes", Value}) ->
     end;
 parse_digest_attr({_, _}) ->
     undefined.
-

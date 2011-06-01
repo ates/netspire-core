@@ -17,7 +17,7 @@ start(_Options) ->
     netspire_hooks:add(radius_auth, ?MODULE, verify_chap).
 
 stop() ->
-    ?INFO_MSG("Stop dynamic module ~p~n", [?MODULE]),
+    ?INFO_MSG("Stopping dynamic module ~p~n", [?MODULE]),
     netspire_hooks:delete(radius_auth, ?MODULE, verify_chap).
 
 verify_chap(_, Request, UserName, Password, Replies, _Client) ->
@@ -43,4 +43,3 @@ do_chap(UserName, <<ChapId, ChapPassword/binary>>, Challenge, Password, Replies)
             ?INFO_MSG("CHAP authentication failed: ~p~n", [UserName]),
             {stop, {reject, []}}
     end.
-
