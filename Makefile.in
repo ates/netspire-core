@@ -50,6 +50,9 @@ run: all
 		-netspire config \"netspire.conf\" -netspire logfile \"/tmp/netspire.log\" \
 		-eval 'application:start(netspire).'
 
+test: all
+	(cd test && make)
+
 clean: clean-recursive
 	rm -f erl_crash.dump netspirectl
 	find . -name "*~" -exec rm -f {} \;
