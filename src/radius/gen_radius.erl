@@ -143,12 +143,7 @@ sweep_request(IP, Port, Packet) ->
 
 request_exists(IP, Port, Packet) ->
     Ident = Packet#radius_packet.ident,
-    case ets:lookup(?MODULE, {IP, Port, Ident}) of
-        [] ->
-            false;
-        [_] ->
-            true
-    end.
+    ets:member(?MODULE, {IP, Port, Ident}).
 
 lookup_client(IP, Table) ->
     case ets:lookup(Table, IP) of
