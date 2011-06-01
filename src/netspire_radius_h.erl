@@ -46,6 +46,9 @@ do_auth(Request, Password, Replies, Context, Client) ->
         {challenge, NewReplies} ->
             do_access_challenge(Request, NewReplies, Context, Client);
         _Any ->
+            ?WARNING_MSG("Radius can't authenticate user ~s due to "
+                         "unknown authentication protocol used by user~n"
+                         "Request packet dump: ~p~n", [UserName, Request]),
             noreply
     end.
 

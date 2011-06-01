@@ -24,10 +24,9 @@ decode_packet(Bin, Secret) ->
                     undefined ->
                         {ok, Packet};
                     Value ->
-                        A1 = A -- [{"Message-Authenticator", Value}],
-                        A2 = A1 ++ [{"Message-Authenticator", <<0:128>>}],
-                        {ok, A3} = encode_attributes(A2),
-                        Packet1 = [Code, Ident, <<Length:16>>, Auth, A3],
+                        A1 = replace_attr_value("Message-Authenticator", A, <<0:128>>),
+                        {ok, A2} = encode_attributes(A1),
+                        Packet1 = [Code, Ident, <<Length:16>>, Auth, A2],
                         case crypto:md5_mac(Secret, Packet1) =:= Value of
                             true ->
                                 {ok, Packet};
@@ -141,19 +140,16 @@ encode_response(Request, Response, Secret) ->
             end;
         _Value ->
             try
-                A1 = A ++ [{"Message-Authenticator", <<0:128>>}],
-                {ok, A2} = encode_attributes(A1),
+                {ok, A1} = encode_attributes(replace_attr_value("Message-Authenticator", A, <<0:128>>)),
 
-                Length = <<(20 + byte_size(A2)):16>>,
-
-                Packet = list_to_binary([Code, Ident, Length, ReqAuth, A2]),
+                Length = <<(20 + byte_size(A1)):16>>,
+                Packet = list_to_binary([Code, Ident, Length, ReqAuth, A1]),
                 MA = crypto:md5_mac(Secret, Packet),
 
-                A3 = A ++ [{"Message-Authenticator", MA}],
-                {ok, A4} = encode_attributes(A3),
+                {ok, A2} = encode_attributes(replace_attr_value("Message-Authenticator", A, MA)),
 
-                Auth = crypto:md5([Code, Ident, Length, ReqAuth, A4, Secret]),
-                Data = list_to_binary([Code, Ident, Length, Auth, A4]),
+                Auth = crypto:md5([Code, Ident, Length, ReqAuth, A2, Secret]),
+                Data = list_to_binary([Code, Ident, Length, Auth, A2]),
                 {ok, Data}
             catch
                 _:_ ->
@@ -245,3 +241,8 @@ identify_packet(42) ->
     {ok, 'Disconnect-NAK'};
 identify_packet(Type) ->
     {unknown, Type}.
+
+%% @doc Replace the value of the specific attribute
+replace_attr_value(Key, Attrs, Value) ->
+    F = fun({K, _}) when K =:= Key -> {Key, Value}; (E) -> E end,
+    [F(E) || E <- Attrs].
