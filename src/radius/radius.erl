@@ -140,16 +140,18 @@ encode_response(Request, Response, Secret) ->
             end;
         _Value ->
             try
-                {ok, A1} = encode_attributes(replace_attr_value("Message-Authenticator", A, <<0:128>>)),
+                A1 = A ++ [{"Message-Authenticator", <<0:128>>}],
+                {ok, A2} = encode_attributes(A1),
 
-                Length = <<(20 + byte_size(A1)):16>>,
-                Packet = list_to_binary([Code, Ident, Length, ReqAuth, A1]),
+                Length = <<(20 + byte_size(A2)):16>>,
+                Packet = list_to_binary([Code, Ident, Length, ReqAuth, A2]),
                 MA = crypto:md5_mac(Secret, Packet),
 
-                {ok, A2} = encode_attributes(replace_attr_value("Message-Authenticator", A, MA)),
+                A3 = A ++ [{"Message-Authenticator", MA}],
+                {ok, A4} = encode_attributes(A3),
 
-                Auth = crypto:md5([Code, Ident, Length, ReqAuth, A2, Secret]),
-                Data = list_to_binary([Code, Ident, Length, Auth, A2]),
+                Auth = crypto:md5([Code, Ident, Length, ReqAuth, A4, Secret]),
+                Data = list_to_binary([Code, Ident, Length, Auth, A4]),
                 {ok, Data}
             catch
                 _:_ ->

@@ -46,7 +46,7 @@ install: all
 	install -m 755 netspirectl $(SBINDIR)
 
 run: all
-	@ERL@ -pa ebin -mnesia dir \"/tmp/netspire\" -sname netspire \
+	@ERL@ +W w -pa ebin -mnesia dir \"/tmp/netspire\" -sname netspire \
 		-netspire config \"netspire.conf\" -netspire logfile \"/tmp/netspire.log\" \
 		-eval 'application:start(netspire).'
 
