@@ -60,6 +60,9 @@
         {use_mppe, no}, {require_encryption, yes}, {require_strong, yes}
     ]},
 
+    %% RADIUS EAP-MD5 auth type
+    {mod_eap_md5, []},
+
     %% RPC service
     {mod_rpc, [
         {listen, {inet, "0.0.0.0", 9876}}
