@@ -64,7 +64,7 @@ verify_eap(_, Request, UserName, Password, Replies, _Client) ->
 %%
 do_eap_md5(Ident, UserName, Password, Challenge, Replies, Data) ->
     Hash = crypto:md5([Ident, Password, Challenge]),
-    <<_Size:8, ReqHash/binary>> = Data,
+    <<_Size:8, ReqHash:16/binary-unit:8, _Rest/binary>> = Data,
     case Hash =:= ReqHash of
         true ->
             ?INFO_MSG("EAP-MD5 authentication succeeded: ~p~n", [UserName]),
