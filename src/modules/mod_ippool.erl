@@ -94,15 +94,15 @@ renew(IP) ->
     Now = netspire_util:timestamp(),
     ExpiresAt = Now + Timeout,
     F = fun() ->
-                case mnesia:read({ippool, IP}) of
-                    [Rec] ->
-                        Entry = Rec#ippool_entry{expires_at = ExpiresAt},
-                        mnesia:write(ippool, Entry, write),
-                        {ok, IP};
-                    _ ->
-                        {error, not_found}
-                end
-        end,
+            case mnesia:read({ippool, IP}) of
+                [Rec] ->
+                    Entry = Rec#ippool_entry{expires_at = ExpiresAt},
+                    mnesia:write(ippool, Entry, write),
+                    {ok, IP};
+                _ ->
+                    {error, not_found}
+            end
+    end,
     case mnesia:transaction(F) of
         {atomic, Result} ->
             Result;
@@ -111,8 +111,7 @@ renew(IP) ->
     end.
 
 info() ->
-    F = fun(Key) -> mnesia:dirty_read({ippool, Key}) end,
-    lists:map(F, mnesia:dirty_all_keys(ippool)).
+    [mnesia:dirty_read({ippool, K}) || K <- mnesia:dirty_all_keys(ippool)].
 
 add_framed_ip({reject, _} = Response) ->
     Response;
