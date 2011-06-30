@@ -3,7 +3,9 @@
 %%% Purpose : NetFlow v9 (RFC-3954) protocol routines.
 %%%----------------------------------------------------------------------
 -module(netflow_v9).
+
 -export([init/0, decode/2]).
+
 -include("netflow_v9.hrl").
 
 init() ->
@@ -23,12 +25,12 @@ decode(Bin, IP) ->
     end.
 
 decode_packet(<<?NF_V9_HEADER_FORMAT, Rest/binary>>, IP) ->
-    Header = #nfh_v9 {version = Version,
-                      count = Count,
-                      sys_uptime = SysUptime,
-                      unix_secs = UnixSecs,
-                      flow_seq = SequenceNum,
-                      source_id = SourceID},
+    Header = #nfh_v9{version = Version,
+                     count = Count,
+                     sys_uptime = SysUptime,
+                     unix_secs = UnixSecs,
+                     flow_seq = SequenceNum,
+                     source_id = SourceID},
     case decode_flowsets(Rest, {SourceID, IP}, []) of
         {ok, Records} ->
             {ok, {Header, Records}};
