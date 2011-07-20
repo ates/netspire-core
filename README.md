@@ -41,6 +41,12 @@ Contribution
 
 Feel free to report issues and suggestions, patches are also welcome.
 
+Licensing
+---------
+
+All parts of this software, except Netflow sources are distributed under GPLv3 terms.
+Netflow sources are distributed under MIT terms.
+
 Credits
 -------
 
