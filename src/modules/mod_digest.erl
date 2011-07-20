@@ -30,8 +30,8 @@ verify_digest(_, Request, UserNameRealm, Password, Replies, _Client) ->
                 undefined -> undefined;
                 _Attrs ->
                     UserName = hd(string:tokens(UserNameRealm, "@")),
-                    Nonce = digest_attribute_value("Digest-Nonce", Request),
-                    CNonce = digest_attribute_value("Digest-CNonce", Request),
+                    Nonce = attribute_value("Digest-Nonce", Request),
+                    CNonce = attribute_value("Digest-CNonce", Request),
                     HA1 = do_ha1(UserName, Password, Nonce, CNonce, Request),
                     RespHash = do_digest(HA1, Nonce, CNonce, Request),
                     case RespHash == DigestResponse of
@@ -50,8 +50,8 @@ verify_digest(_, Request, UserNameRealm, Password, Replies, _Client) ->
 %% Internal functions
 %%
 do_ha1(UserName, Password, Nonce, CNonce, Request) ->
-    Realm = digest_attribute_value("Digest-Realm", Request),
-    Algorithm = digest_attribute_value("Digest-Algorithm", Request),
+    Realm = attribute_value("Digest-Realm", Request),
+    Algorithm = attribute_value("Digest-Algorithm", Request),
 
     H = crypto:md5([UserName, ":", Realm, ":", Password]),
     HA = string:to_lower(netspire_util:binary_to_hex_string(H)),
@@ -64,11 +64,11 @@ do_ha1(UserName, Password, Nonce, CNonce, Request) ->
     end.
 
 do_digest(HA1, Nonce, CNonce, Request) ->
-    Method = digest_attribute_value("Digest-Method", Request),
-    DigestURI = digest_attribute_value("Digest-URI", Request),
-    Qop = digest_attribute_value("Digest-Qop", Request),
-    NonceCount = digest_attribute_value("Digest-Nonce-Count", Request),
-    Entiny = digest_attribute_value("Digest-Entity-Body-Hash", Request),
+    Method = attribute_value("Digest-Method", Request),
+    DigestURI = attribute_value("Digest-URI", Request),
+    Qop = attribute_value("Digest-Qop", Request),
+    NonceCount = attribute_value("Digest-Nonce-Count", Request),
+    Entiny = attribute_value("Digest-Entity-Body-Hash", Request),
 
     HA2 = case Qop of
         <<"auth-int">> ->
@@ -86,12 +86,12 @@ do_digest(HA1, Nonce, CNonce, Request) ->
     end,
     string:to_lower(netspire_util:binary_to_hex_string(RespHash)).
 
-digest_attribute_value(Name, Request) ->
+attribute_value(Name, Request) ->
     Attrs = Request#radius_packet.attrs,
-    A = [parse_digest_attr(A) || A <- Attrs, A =/= undefined],
+    A = [parse_attribute(A) || A <- Attrs, A =/= undefined],
     proplists:get_value(Name, A).
 
-parse_digest_attr({"Digest-Attributes", Value}) ->
+parse_attribute({"Digest-Attributes", Value}) ->
     <<Code:8, Len:8, Attr/binary>> = Value,
     if
         Len < 3 orelse Len > byte_size(Value) ->
@@ -111,5 +111,5 @@ parse_digest_attr({"Digest-Attributes", Value}) ->
                 10 -> {"Digest-Username", Attr}
             end
     end;
-parse_digest_attr({_, _}) ->
+parse_attribute({_, _}) ->
     undefined.
