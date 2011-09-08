@@ -251,7 +251,7 @@ encode_value(Value, ipaddr) when is_list(Value) ->
         {ok, {A, B, C, D}} ->
             encode_value({A, B, C, D}, ipaddr);
         _ ->
-            ?WARNING_MSG("Unable to encode attribute value ~p as ipaddr~n", [IP]),
+            ?WARNING_MSG("Unable to encode attribute value ~p as ipaddr~n", [Value]),
             throw({error, encode_value})
     end;
 encode_value({A, B, C, D}, ipaddr) ->
