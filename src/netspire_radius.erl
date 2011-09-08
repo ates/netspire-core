@@ -47,8 +47,8 @@ add_request_handler(Ref, Module, {Name, StrIP, Secret}) ->
     Client = {Name, IP, Secret, Module},
     gen_radius:add_request_handler(Ref, Client).
 
-process_listen_option({Ident, {Family, StrIP, Port}}) ->
-    {ok, IP} = inet_parse:address(StrIP),
+process_listen_option({Ident, {Address, Port}}) ->
+    {ok, {Family, IP}} = netspire_util:normalize_ip(Address),
     Name = get_service_ref(Ident),
     ChildSpec = {
       Name,

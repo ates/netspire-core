@@ -39,11 +39,11 @@ start_link(Options) ->
 
 process_listen_options(Options) ->
     case Options of
-        [{listen, {Family, StrIP, Port}}] ->
-            {ok, IP} = inet_parse:address(StrIP),
+        [{listen, {Address, Port}}] ->
+            {ok, {Family, IP}} = netspire_util:normalize_ip(Address),
             SocketOpts = [binary, Family, {ip, IP}, {packet, 4}, {active, false},
                 {reuseaddr, true}],
-            {ok, {StrIP, Port, SocketOpts}};
+            {ok, {Address, Port, SocketOpts}};
         _ ->
             {error, invalid_options}
     end.

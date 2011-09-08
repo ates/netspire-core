@@ -12,15 +12,14 @@
     %% NetFlow gathering service
     {netspire_netflow, [
         %% Bind socket to special address.
-        %% Specify inet6 instead of inet for IPv6 address family.
-        {listen, {inet, "0.0.0.0", 9999}}
+        {listen, {"0.0.0.0", 9999}}
     ]},
 
     %% RADIUS service
     {netspire_radius, [
         {listen, [
-            {auth, {inet, "0.0.0.0", 1812}},
-            {acct, {inet, "0.0.0.0", 1813}}
+            {auth, {"0.0.0.0", 1812}},
+            {acct, {"0.0.0.0", 1813}}
         ]},
 
         %% Service bindings
@@ -65,7 +64,7 @@
 
     %% RPC service
     {mod_rpc, [
-        {listen, {inet, "0.0.0.0", 9876}}
+        {listen, {"0.0.0.0", 9876}}
     ]},
 
     %% Pool of IP addresses
