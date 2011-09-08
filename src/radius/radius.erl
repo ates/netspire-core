@@ -215,12 +215,12 @@ decode_value(Bin, Length, ipaddr) ->
     {{A, B, C, D}, Rest};
 decode_value(Bin, Length, ipv6addr) ->
     <<Value:Length/binary, Rest/binary>> = Bin,
-    List = [I || <<I:16>> <= Value],
-    {list_to_tuple(List), Rest};
+    Address = iplib:bin_ipv6_to_address(Value),
+    {Address, Rest};
 decode_value(Bin, _Length, ipv6prefix) ->
     <<0:8, PrefixLen:8, IP/binary>> = Bin,
-    List = [I || <<I:16>> <= IP],
-    {{PrefixLen, list_to_tuple(List)}, <<>>};
+    Address = iplib:bin_ipv6_to_address(IP),
+    {{PrefixLen, Address}, <<>>};
 decode_value(Bin, Length, _Type) ->
     decode_value(Bin, Length).
 
@@ -257,15 +257,8 @@ encode_value(Value, ipaddr) when is_list(Value) ->
 encode_value({A, B, C, D}, ipaddr) ->
     <<A:8, B:8, C:8, D:8>>;
 
-encode_value(Value, ipv6addr) when is_list(Value) ->
-    case inet_parse:ipv6_address(Value) of
-        {ok, Address} ->
-            encode_value(Address, ipv6addr);
-        _ ->
-            throw({error, encode_value})
-    end;
-encode_value(Value, ipv6addr) when is_tuple(Value) andalso size(Value) == 8 ->
-    binary:list_to_bin([<<I:16>> || I <- tuple_to_list(Value)]);
+encode_value(Value, ipv6addr) ->
+    iplib:ipv6_to_binary(Value);
 
 encode_value({PrefixLen, Address}, ipv6prefix) ->
     list_to_binary([<<0:8, PrefixLen:8>>, encode_value(Address, ipv6addr)]);

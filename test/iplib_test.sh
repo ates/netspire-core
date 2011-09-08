@@ -49,10 +49,10 @@ main([]) ->
     ?assert(iplib:in_range("192.168.7.10", "192.168.1.0/22") =:= false),
     ?assert(iplib:in_range("192.168.1.10", "192.168.1.0/255.255.255.0") =:= true),
 
-    % bin_ipv6_to_string & ipv6_to_binary
+    % bin_ipv6_to_address & ipv6_to_binary
     Bin = <<222,173,190,175,0,0,0,0,0,0,0,0,0,0,0,1>>,
-    IPv6 = "DEAD:BEAF:0000:0000:0000:0000:0000:0001",
-    ?assert(iplib:bin_ipv6_to_string(Bin) =:= IPv6),
+    IPv6 = {57005,48815,0,0,0,0,0,1},
+    ?assert(iplib:bin_ipv6_to_address(Bin) =:= IPv6),
     ?assert(iplib:ipv6_to_binary(IPv6) =:= Bin),
 
     % is_macaddr
