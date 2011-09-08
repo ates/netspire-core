@@ -1,9 +1,6 @@
-%%%----------------------------------------------------------------------
-%%% File : radius_dict.erl
-%%% Purpose : Provides RADIUS dictionary.
-%%%----------------------------------------------------------------------
 -module(radius_dict).
 
+%% interface
 -export([start/0, lookup_attribute/1, lookup_value/2]).
 
 -include("radius.hrl").
@@ -18,6 +15,33 @@ start() ->
     ets:new(?VALUES_TABLE, [named_table]),
     load_dictionary("dictionary").
 
+lookup_attribute(Name) when is_list(Name) ->
+    Pat = {attribute, '_', '_', Name, '_'},
+    case ets:match_object(?ATTRS_TABLE, Pat, 1) of
+        {[Attr], _} ->
+            Attr;
+        '$end_of_table' ->
+            not_found
+    end;
+lookup_attribute(Code) ->
+    case ets:lookup(?ATTRS_TABLE, Code) of
+        [Attr] ->
+            Attr;
+        [] ->
+            not_found
+    end.
+
+lookup_value(A, V) ->
+    case ets:lookup(?VALUES_TABLE, {A, V}) of
+        [{_Key, Value}] ->
+            Value;
+        [] ->
+            not_found
+    end.
+
+%%
+%% Internal functions
+%%
 load_dictionary(File) ->
     case file:open(dictionary_path(File), [read]) of
         {ok, Fd} ->
@@ -29,7 +53,7 @@ load_dictionary(File) ->
 dictionary_path(File) ->
     PrivDir = case code:priv_dir(netspire) of
         {error, bad_name} ->
-	        "./priv";
+            "./priv";
         D ->
             D
     end,
@@ -67,19 +91,31 @@ parse_line(["$INCLUDE", File]) ->
     load_dictionary(File);
 
 parse_line(["ATTRIBUTE", Name, Code, Type]) ->
-    A = #attribute{name = Name, code = list_to_integer(Code), type = list_to_atom(Type)},
-    {attribute, A};
+    case get(vendor) of
+        undefined ->
+            A = #attribute{name = Name, code = list_to_integer(Code), type = list_to_atom(Type)},
+            {attribute, A};
+        {_VendorName, VendorID} ->
+            C = {VendorID, list_to_integer(Code)},
+            A = #attribute{name = Name, code = C, type = list_to_atom(Type)},
+            {attribute, A}
+    end;
 
 parse_line(["ATTRIBUTE", Name, Code, Type, Extra]) ->
-    case get({vendor, Extra}) of
-        undefined ->
+    case get(vendor) of
+        undefined -> % ATTRIBUTE name number type OPTIONS
             Opts = [parse_option(string:tokens(I, "=")) || I <- string:tokens(Extra, ",")],
             A = #attribute{name = Name, code = list_to_integer(Code), type = list_to_atom(Type)},
             {attribute, A#attribute{opts = Opts}};
-        Vendor ->
-            C = {Vendor, list_to_integer(Code)},
+        {Extra, VendorID} -> % ATTRIBUTE name number type VENDOR-NAME
+            C = {VendorID, list_to_integer(Code)},
             A = #attribute{name = Name, code = C, type = list_to_atom(Type)},
-            {attribute, A}
+            {attribute, A};
+        {_VendorName, VendorID} -> % ATTRIBUTE name number type VENDOR-OPTIONS
+            Opts = [parse_option(string:tokens(I, "=")) || I <- string:tokens(Extra, ",")],
+            C = {VendorID, list_to_integer(Code)},
+            A = #attribute{name = Name, code = C, type = list_to_atom(Type)},
+            {attribute, A#attribute{opts = Opts}}
     end;
 
 parse_line(["VALUE", A, Name, Value]) ->
@@ -87,7 +123,10 @@ parse_line(["VALUE", A, Name, Value]) ->
     {value, V};
 
 parse_line(["VENDOR", Name, Code]) ->
-    put({vendor, Name}, list_to_integer(Code));
+    put(vendor, {Name, list_to_integer(Code)});
+
+parse_line(["END-VENDOR", _]) ->
+    erase(vendor);
 
 parse_line(_) ->
     ok.
@@ -97,27 +136,3 @@ parse_option(["has_tag"]) ->
 
 parse_option(["encrypt", Value]) ->
     {encrypt, list_to_integer(Value)}.
-
-lookup_attribute(Name) when is_list(Name) ->
-    Pat = {attribute, '_', '_', Name, '_'},
-    case ets:match_object(?ATTRS_TABLE, Pat, 1) of
-        {[Attr], _} ->
-            Attr;
-        '$end_of_table' ->
-            not_found
-    end;
-lookup_attribute(Code) ->
-    case ets:lookup(?ATTRS_TABLE, Code) of
-        [Attr] ->
-            Attr;
-        [] ->
-            not_found
-    end.
-
-lookup_value(A, V) ->
-    case ets:lookup(?VALUES_TABLE, {A, V}) of
-        [{_Key, Value}] ->
-            Value;
-        [] ->
-            not_found
-    end.
