@@ -5,15 +5,17 @@
 
 VENDOR		Netspire			65535
 
-ATTRIBUTE   Netspire-Framed-Pool                    1   string      Netspire
+ATTRIBUTE   Netspire-Framed-Pool                    1   string
 
-ATTRIBUTE   Netspire-Upstream-Speed-Limit           2   integer     Netspire
-ATTRIBUTE   Netspire-Downstream-Speed-Limit         3   integer     Netspire
-ATTRIBUTE   Netspire-Upstream-Speed-Limit-1         4   integer     Netspire
-ATTRIBUTE   Netspire-Downstream-Speed-Limit-1       5   integer     Netspire
-ATTRIBUTE   Netspire-Upstream-Speed-Limit-2         6   integer     Netspire
-ATTRIBUTE   Netspire-Downstream-Speed-Limit-2       7   integer     Netspire
-ATTRIBUTE   Netspire-Upstream-Speed-Limit-3         8   integer     Netspire
-ATTRIBUTE   Netspire-Downstream-Speed-Limit-3       9   integer     Netspire
+ATTRIBUTE   Netspire-Upstream-Speed-Limit           2   integer
+ATTRIBUTE   Netspire-Downstream-Speed-Limit         3   integer
+ATTRIBUTE   Netspire-Upstream-Speed-Limit-1         4   integer
+ATTRIBUTE   Netspire-Downstream-Speed-Limit-1       5   integer
+ATTRIBUTE   Netspire-Upstream-Speed-Limit-2         6   integer
+ATTRIBUTE   Netspire-Downstream-Speed-Limit-2       7   integer
+ATTRIBUTE   Netspire-Upstream-Speed-Limit-3         8   integer
+ATTRIBUTE   Netspire-Downstream-Speed-Limit-3       9   integer
 
-ATTRIBUTE   Netspire-Allowed-NAS                    10  string      Netspire
+ATTRIBUTE   Netspire-Allowed-NAS                    10  string
+
+END-VENDOR Netspire
