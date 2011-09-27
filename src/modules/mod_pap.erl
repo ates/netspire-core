@@ -20,7 +20,7 @@ stop() ->
     netspire_hooks:delete(radius_auth, ?MODULE, verify_pap).
 
 verify_pap(_, Request, UserName, Password, Replies, Client) ->
-    case radius:attribute_value("Password", Request) of
+    case radius:attribute_value("User-Password", Request) of
         undefined -> undefined;
         UserPassword ->
             Secret = Client#nas_spec.secret,
