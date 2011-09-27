@@ -47,7 +47,7 @@ load_file(File) ->
     ?INFO_MSG("Loading configuration file ~s~n", [File]),
     case file:consult(File) of
         {ok, Terms} ->
-            lists:foreach(fun(Term) -> ets:insert(config, Term) end, Terms);
+            ets:insert(config, Terms);
         {error, Reason} ->
             Msg = file:format_error(Reason),
             ?ERROR_MSG("Can't load configuration file ~s: ~s~n", [File, Msg]),
