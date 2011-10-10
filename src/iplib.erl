@@ -5,7 +5,10 @@
          range/1, range2list/1, in_range/2, is_ipv4_mapped/1,
          bin_ipv6_to_address/1, ipv6_to_binary/1, is_macaddr/1]).
 
--define(MAC_REGEXP, "^([0-9a-f]{2}([:-]|$)){6}$").
+%% Supported formats of MACADDR
+%% 08002b:010203, 08002b-010203, 0800.2b01.0203
+%% 08-00-2b-01-02-03, 08:00:2b:01:02:03
+-define(MAC_REGEXP, "^([0-9a-f]{2}([:-]|$)){6}|^([0-9a-f]{6}([:-]|$)){2}|^([0-9a-f]{4}(\.|$)){3}$").
 
 ip2long(IP) when is_integer(IP) -> IP;
 ip2long(IP) when is_list(IP) ->
