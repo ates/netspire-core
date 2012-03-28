@@ -30,7 +30,7 @@ start_link(Name, Port, IP, Family) ->
 
 init([Port, IP, Family]) ->
     process_flag(trap_exit, true),
-    SocketOpts = [binary, Family, {ip, IP}, {active, once}],
+    SocketOpts = [binary, Family, {ip, IP}],
     case gen_udp:open(Port, SocketOpts) of
         {ok, Socket} ->
             ?INFO_MSG("Starting module ~p on ~s:~p~n", [?MODULE, inet_parse:ntoa(IP), Port]),
@@ -68,19 +68,15 @@ handle_info({udp, Socket, SrcIP, SrcPort, Bin}, State) ->
                 {ok, Packet} ->
                     case request_exists(SrcIP, SrcPort, Packet) of
                         false ->
-                            Pid = spawn_link(fun() ->
-                                        do_callback(SrcIP, SrcPort, Socket, Client, Packet)
-                                     end),
+                            Opts = [SrcIP, SrcPort, Socket, Client, Packet],
+                            Pid = spawn_link(fun() -> do_callback(Opts) end),
                             store_request(SrcIP, SrcPort, Packet, Pid),
-                            inet:setopts(Socket, [{active, once}]),
                             {noreply, State};
                         true ->
-                            inet:setopts(Socket, [{active, once}]),
                             {noreply, State}
                     end;
                 {error, invalid} ->
                     ?WARNING_MSG("Invalid packet from NAS: ~s~n", [inet_parse:ntoa(SrcIP)]),
-                    inet:setopts(Socket, [{active, once}]),
                     {noreply, State}
             end;
         undefined ->
@@ -99,7 +95,7 @@ terminate(_Reason, State) ->
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
-do_callback(IP, Port, Socket, Client, Packet) ->
+do_callback([IP, Port, Socket, Client, Packet]) ->
     case radius:identify_packet(Packet#radius_packet.code) of
         {ok, Type} ->
             Module = Client#nas_spec.module,
